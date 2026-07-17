@@ -161,7 +161,7 @@ jobs:
           args: --target ${{ matrix.target }} --config src-tauri/tauri.release.conf.json
 
       - name: Attach toolchain provenance
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: toolchain-manifest-${{ matrix.target }}
           path: src-tauri/toolchain-runtime/toolchain-manifest.json

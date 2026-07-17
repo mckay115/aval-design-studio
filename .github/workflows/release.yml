@@ -18,13 +18,13 @@ jobs:
     name: Validate release source
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
         with:
           version: 10.33.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22.12.0
           cache: pnpm
@@ -72,13 +72,13 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
         with:
           version: 10.33.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22.12.0
           cache: pnpm
@@ -161,7 +161,7 @@ jobs:
           args: --target ${{ matrix.target }} --config src-tauri/tauri.release.conf.json
 
       - name: Attach toolchain provenance
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: toolchain-manifest-${{ matrix.target }}
           path: src-tauri/toolchain-runtime/toolchain-manifest.json
@@ -174,10 +174,10 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Download toolchain provenance
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: toolchain-manifest-*
           path: provenance

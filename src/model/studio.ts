@@ -81,7 +81,7 @@ export interface StudioSource {
   readonly preparation: PreparationPlan;
 }
 
-interface StudioUnitBase {
+export interface StudioUnitBase {
   readonly id: string;
   readonly name: string;
   readonly kind: UnitKind;
@@ -295,7 +295,6 @@ export function rationalFrameRate(value: number): Rational {
 export function identifierFor(value: string, fallback: string): string {
   const candidate = value
     .toLowerCase()
-    .replace(/\.[^.]+$/u, "")
     .replace(/[^a-z0-9._-]+/gu, "-")
     .replace(/^[^a-z]+/u, "")
     .replace(/^-+|-+$/gu, "")
@@ -348,7 +347,7 @@ export function defaultPorts(frameCount: number, playback: BodyPlayback): readon
 }
 
 export function createStudioProject(descriptor: MediaDescriptor): StudioProjectV3 {
-  const sourceId = identifierFor(descriptor.name, "source");
+  const sourceId = identifierFor(descriptor.name.replace(/\.[^.]+$/u, ""), "source");
   const projectName = descriptor.name.replace(/\.[^.]+$/u, "") || "Untitled motion";
   const body: StudioBodyUnit = {
     id: "idle.body",
@@ -577,7 +576,9 @@ export function studioGraphErrors(project: StudioProjectV3): readonly string[] {
   const unitById = new Map(project.units.map((unit) => [unit.id, unit]));
   const stateById = new Map(project.states.map((state) => [state.id, state]));
   const unitUse = new Map(project.units.map((unit) => [unit.id, 0]));
-  const useUnit = (id: string): void => unitUse.set(id, (unitUse.get(id) ?? 0) + 1);
+  const useUnit = (id: string): void => {
+    unitUse.set(id, (unitUse.get(id) ?? 0) + 1);
+  };
 
   if (!stateById.has(project.initialState)) errors.push("The initial state does not exist.");
   for (const unit of project.units) {

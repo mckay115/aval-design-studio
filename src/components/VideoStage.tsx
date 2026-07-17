@@ -1,7 +1,8 @@
-import { useLayoutEffect, useRef, type RefObject } from "react";
+import { useLayoutEffect, useRef, useState, type RefObject } from "react";
+import type { MotionGraphSnapshot } from "@pixel-point/aval-graph";
 
 import { aspectRatioLabel, containMediaSize } from "../lib/mediaGeometry";
-import { timecodeForFrame, type AlphaPreview, type MediaDescriptor, type PreviewMode, type StudioState } from "../model/studio";
+import { STUDIO_BINDING_SOURCES, timecodeForFrame, type AlphaPreview, type MediaDescriptor, type PreviewMode, type StudioBinding, type StudioBindingSource, type StudioState } from "../model/studio";
 import { ArrowLeftIcon, ArrowRightIcon, PauseIcon, PlayIcon, SlidersIcon } from "./Icons";
 
 interface VideoStageProps {
@@ -10,6 +11,10 @@ interface VideoStageProps {
   readonly mode: PreviewMode;
   readonly alphaPreview: AlphaPreview;
   readonly activeState: StudioState | null;
+  readonly states: readonly StudioState[];
+  readonly bindings: readonly StudioBinding[];
+  readonly graphSnapshot: MotionGraphSnapshot | null;
+  readonly graphError: string | null;
   readonly currentFrame: number;
   readonly isPlaying: boolean;
   readonly status: "idle" | "probing" | "ready" | "unsupported";
@@ -18,7 +23,10 @@ interface VideoStageProps {
   readonly onAlphaPreview: (mode: AlphaPreview) => void;
   readonly onTogglePlayback: () => void;
   readonly onStep: (direction: -1 | 1) => void;
-  readonly onTrigger: (eventName: string) => void;
+  readonly onRequestState: (stateId: string) => void;
+  readonly onSendEvent: (eventName: string) => void;
+  readonly onSendBinding: (source: StudioBindingSource) => void;
+  readonly onRestartGraph: () => void;
   readonly onToggleInteraction: () => void;
 }
 
@@ -28,6 +36,10 @@ export function VideoStage({
   mode,
   alphaPreview,
   activeState,
+  states,
+  bindings,
+  graphSnapshot,
+  graphError,
   currentFrame,
   isPlaying,
   status,
@@ -36,10 +48,14 @@ export function VideoStage({
   onAlphaPreview,
   onTogglePlayback,
   onStep,
-  onTrigger,
+  onRequestState,
+  onSendEvent,
+  onSendBinding,
+  onRestartGraph,
   onToggleInteraction
 }: VideoStageProps) {
   const stageRef = useRef<HTMLDivElement>(null);
+  const [customEvent, setCustomEvent] = useState("");
 
   useLayoutEffect(() => {
     const stage = stageRef.current;
@@ -76,12 +92,20 @@ export function VideoStage({
         <canvas
           ref={canvasRef}
           aria-label={`${descriptor.name} preview`}
-          onPointerEnter={() => mode === "interactive" && onTrigger("hover.enter")}
-          onPointerLeave={() => mode === "interactive" && onTrigger("hover.leave")}
+          onPointerEnter={() => mode === "interactive" && onSendBinding("pointer.enter")}
+          onPointerLeave={() => mode === "interactive" && onSendBinding("pointer.leave")}
         />
         <div className="preview-state-label"><i aria-hidden="true" />{activeState?.name ?? "Source"}</div>
         <div className="preview-resolution">{descriptor.width}×{descriptor.height}<span>· {aspectRatioLabel(descriptor.width, descriptor.height)}</span></div>
-        {mode === "interactive" ? <div className="interaction-guide" role="status"><i aria-hidden="true" />Live test · Move the pointer over the video</div> : null}
+        {mode === "interactive" ? <div className="interaction-guide" role="status"><i aria-hidden="true" />Live graph · {graphSnapshot?.phase ?? "starting"}</div> : null}
+        {mode === "interactive" ? <aside className="interaction-console" aria-label="Interaction demo tester">
+          <header><div><strong>Interaction tester</strong><span>{graphSnapshot?.visualState ?? activeState?.id ?? "starting"} · {graphSnapshot?.phase ?? "preparing"}</span></div><button type="button" onClick={onRestartGraph}>Restart</button></header>
+          <div className="interaction-test-section"><span>Request a state</span><div>{states.map((state) => <button key={state.id} type="button" className={state.id === graphSnapshot?.requestedState ? "is-active" : ""} onClick={() => onRequestState(state.id)}>{state.name}</button>)}</div></div>
+          <div className="interaction-test-section"><span>Host controls</span><div>{STUDIO_BINDING_SOURCES.filter((source) => bindings.some((binding) => binding.source === source)).map((source) => <button key={source} type="button" onClick={() => onSendBinding(source)}>{source}</button>)}</div></div>
+          <form onSubmit={(event) => { event.preventDefault(); if (customEvent.trim().length > 0) onSendEvent(customEvent.trim()); }}><input aria-label="Custom graph event" value={customEvent} placeholder="custom.event" onChange={(event) => setCustomEvent(event.currentTarget.value)} /><button type="submit">Send</button></form>
+          {graphSnapshot?.activeEdgeId === null || graphSnapshot?.activeEdgeId === undefined ? null : <p>Route: <code>{graphSnapshot.activeEdgeId}</code></p>}
+          {graphError === null ? null : <p className="interaction-error">{graphError}</p>}
+        </aside> : null}
         {status === "probing" ? <div className="preview-message"><span className="spinner" />Analyzing source with MediaBunny…</div> : null}
         {error === null ? null : <div className="preview-message preview-error">{error}</div>}
       </div>

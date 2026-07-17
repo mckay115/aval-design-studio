@@ -12,6 +12,7 @@ interface TimelineProps {
   readonly frameRate: Rational;
   readonly thumbnails: readonly string[];
   readonly onSelect: (id: string) => void;
+  readonly onSelectRoute: (id: string) => void;
   readonly onSeek: (frame: number) => void;
   readonly onResize: (id: string, edge: "start" | "end", frame: number) => void;
 }
@@ -29,13 +30,15 @@ export function Timeline({
   frameRate,
   thumbnails,
   onSelect,
+  onSelectRoute,
   onSeek,
   onResize
 }: TimelineProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [view, setView] = useState<"units" | "routes">("units");
   const [zoom, setZoom] = useState(100);
-  const sorted = useMemo(() => [...units].sort((a, b) => a.range[0] - b.range[0]), [units]);
+  const packed = useMemo(() => packUnitLanes(units), [units]);
+  const laneCount = Math.max(1, ...packed.map(({ lane }) => lane + 1));
   const frameFromX = useCallback((clientX: number): number => {
     const rect = trackRef.current?.getBoundingClientRect();
     if (rect === undefined || rect.width <= 0) return 0;
@@ -89,16 +92,16 @@ export function Timeline({
       </div>
 
       {view === "units" ? (
-        <div className="unit-track" ref={trackRef}>
-          {sorted.map((unit) => {
+        <div className="unit-track stacked" ref={trackRef} style={{ minHeight: `${Math.max(52, laneCount * 38 + 10)}px` }} onPointerDown={startScrub}>
+          {packed.map(({ unit, lane }) => {
             const selected = unit.id === selectedId;
             return (
               <div
                 key={unit.id}
                 className={`timeline-unit color-${unit.color}${selected ? " is-selected" : ""}`}
-                style={{ left: `${percent(unit.range[0], totalFrames)}%`, width: `${percent(unit.range[1] - unit.range[0], totalFrames)}%` }}
+                style={{ left: `${percent(unit.range[0], totalFrames)}%`, width: `${percent(unit.range[1] - unit.range[0], totalFrames)}%`, top: `${5 + lane * 38}px` }}
               >
-                <button type="button" className="unit-select" onClick={() => { onSelect(unit.id); onSeek(unit.range[0]); }}>{unit.name}</button>
+                <button type="button" className="unit-select" onPointerDown={(event) => event.stopPropagation()} onClick={() => { onSelect(unit.id); onSeek(unit.range[0]); }}><small>{unit.kind === "one-shot" ? "intro" : unit.kind}</small>{unit.name}</button>
                 {selected ? <>
                   <button type="button" className="resize-handle start" aria-label={`Resize start of ${unit.name}`} onPointerDown={(event) => startResize(event, unit, "start")}>Ⅱ</button>
                   <button type="button" className="resize-handle end" aria-label={`Resize end of ${unit.name}`} onPointerDown={(event) => startResize(event, unit, "end")}>Ⅱ</button>
@@ -109,7 +112,7 @@ export function Timeline({
         </div>
       ) : (
         <div className="route-track">
-          {routes.map((route) => <div key={route.id}><span>{route.from}</span><b>→</b><span>{route.to}</span><em>{route.trigger.type === "event" ? route.trigger.name : "completion"}</em></div>)}
+          {routes.length === 0 ? <p>No routes yet. Use + next to Interactions to connect states.</p> : routes.map((route) => <button type="button" className={route.id === selectedId ? "is-selected" : ""} key={route.id} onClick={() => onSelectRoute(route.id)}><span>{route.from}</span><b>→</b><span>{route.to}</span><em>{route.trigger?.type === "event" ? route.trigger.name : route.trigger?.type === "completion" ? "completion" : "direct request"}</em></button>)}
         </div>
       )}
 
@@ -142,4 +145,19 @@ export function Timeline({
       </div>
     </section>
   );
+}
+
+export function packUnitLanes(units: readonly StudioUnit[]): readonly { readonly unit: StudioUnit; readonly lane: number }[] {
+  const sorted = [...units].sort((left, right) => left.range[0] - right.range[0] || left.range[1] - right.range[1] || left.id.localeCompare(right.id));
+  const laneEnds: number[] = [];
+  return sorted.map((unit) => {
+    let lane = laneEnds.findIndex((end) => end <= unit.range[0]);
+    if (lane < 0) {
+      lane = laneEnds.length;
+      laneEnds.push(unit.range[1]);
+    } else {
+      laneEnds[lane] = unit.range[1];
+    }
+    return { unit, lane };
+  });
 }

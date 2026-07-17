@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { applyStateTemplate } from "./graphOperations";
 import {
   createStudioProject,
   encodingProfile,
@@ -33,19 +34,29 @@ const descriptor: MediaDescriptor = {
   audioTrackCount: 1
 };
 
-describe("Studio project v2", () => {
-  it("creates a states-first project with exact half-open units", () => {
+function hoverProject() {
+  return applyStateTemplate(createStudioProject(descriptor), "hover", "replace", {
+    anchor: [0, 58],
+    enter: [58, 120],
+    hover: [120, 360],
+    exit: [360, 480]
+  });
+}
+
+describe("Studio project v3", () => {
+  it("creates a one-state project with an exact half-open body unit", () => {
     const project = createStudioProject(descriptor);
-    expect(project.states.map((state) => state.id)).toEqual(["idle", "entering", "hover", "exiting"]);
-    expect(project.units[0]?.range[0]).toBe(0);
-    expect(project.units.at(-1)?.range[1]).toBe(480);
+    expect(project.studioVersion).toBe(3);
+    expect(project.states.map((state) => state.id)).toEqual(["idle"]);
+    expect(project.sources[0]?.id).toBe("rabbit");
+    expect(project.units[0]?.id).toBe("idle.body");
+    expect(project.units[0]?.range).toEqual([0, 480]);
   });
 
-  it("resolves event and completion routes through the interaction graph", () => {
-    const project = createStudioProject(descriptor);
-    expect(resolveStudioRoute(project, "idle", { type: "event", name: "hover.enter" })?.state.id).toBe("entering");
-    expect(resolveStudioRoute(project, "entering", { type: "completion" })?.state.id).toBe("hover");
-    expect(resolveStudioRoute(project, "hover", { type: "event", name: "hover.leave" })?.state.id).toBe("exiting");
+  it("resolves authored hover routes between stable body states", () => {
+    const project = hoverProject();
+    expect(resolveStudioRoute(project, "idle", { type: "event", name: "hover.enter" })?.state.id).toBe("hover");
+    expect(resolveStudioRoute(project, "hover", { type: "event", name: "hover.leave" })?.state.id).toBe("idle");
     expect(resolveStudioRoute(project, "hover", { type: "event", name: "hover.enter" })).toBeNull();
   });
 
@@ -57,10 +68,11 @@ describe("Studio project v2", () => {
   });
 
   it("emits strict AVAL 1.0 authoring fields", () => {
-    const document = toAvalProject(createStudioProject(descriptor));
+    const document = toAvalProject(hoverProject());
     expect(document.projectVersion).toBe("1.0");
     expect(document.sources[0]?.timing.mode).toBe("exact");
-    expect(document.units[0]).toMatchObject({ kind: "body", range: [0, 58] });
+    expect(document.units.find((unit) => unit.id === "idle.body")).toMatchObject({ kind: "body", range: [0, 58] });
+    expect(document.edges).toHaveLength(2);
     expect(document).not.toHaveProperty("editor");
   });
 

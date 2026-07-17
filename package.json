@@ -3,6 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "description": "A cross-platform visual authoring studio for AVAL interactive video assets.",
+  "license": "MIT",
+  "homepage": "https://mckay115.github.io/aval-design-studio/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mckay115/aval-design-studio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mckay115/aval-design-studio/issues"
+  },
+  "keywords": [
+    "aval",
+    "interactive-video",
+    "motion-design",
+    "tauri",
+    "webcodecs"
+  ],
   "type": "module",
   "packageManager": "pnpm@10.33.0",
   "engines": {

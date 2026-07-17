@@ -6,20 +6,28 @@ interface TopBarProps {
   readonly projectName: string | null;
   readonly sourceReady: boolean;
   readonly saved: boolean;
+  readonly canUndo: boolean;
+  readonly canRedo: boolean;
   readonly onImport: () => void;
   readonly onRename: (name: string) => void;
   readonly onSave: () => void;
   readonly onBuild: () => void;
+  readonly onUndo: () => void;
+  readonly onRedo: () => void;
 }
 
 export function TopBar({
   projectName,
   sourceReady,
   saved,
+  canUndo,
+  canRedo,
   onImport,
   onRename,
   onSave,
-  onBuild
+  onBuild,
+  onUndo,
+  onRedo
 }: TopBarProps) {
   const [renaming, setRenaming] = useState(false);
   const [draftName, setDraftName] = useState("");
@@ -99,6 +107,10 @@ export function TopBar({
             </div>
           </div>
         ) : null}
+      </div>
+      <div className="history-actions" aria-label="Graph history">
+        <button type="button" disabled={!canUndo} aria-label="Undo graph edit" title="Undo (⌘Z)" onClick={onUndo}>↶</button>
+        <button type="button" disabled={!canRedo} aria-label="Redo graph edit" title="Redo (⇧⌘Z)" onClick={onRedo}>↷</button>
       </div>
       <div className="save-indicator" aria-live="polite">
         <i className={saved ? "is-saved" : "is-dirty"} aria-hidden="true" />

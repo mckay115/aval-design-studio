@@ -38,14 +38,18 @@ beforeAll(() => {
 
 afterEach(cleanup);
 
-function renderStage(mode: "unit" | "interactive", onTrigger = vi.fn()) {
+function renderStage(mode: "unit" | "interactive", onBinding = vi.fn()) {
   render(
     <VideoStage
       canvasRef={createRef<HTMLCanvasElement>()}
       descriptor={descriptor}
       mode={mode}
       alphaPreview="composite"
-      activeState={{ id: "idle", name: "Idle", unitId: "idle.body", color: "teal" }}
+      activeState={{ id: "idle", name: "Idle", bodyUnitId: "idle.body", color: "teal" }}
+      states={[{ id: "idle", name: "Idle", bodyUnitId: "idle.body", color: "teal" }]}
+      bindings={[{ source: "pointer.enter", event: "hover.enter" }, { source: "pointer.leave", event: "hover.leave" }]}
+      graphSnapshot={null}
+      graphError={null}
       currentFrame={0}
       isPlaying={false}
       status="ready"
@@ -54,33 +58,36 @@ function renderStage(mode: "unit" | "interactive", onTrigger = vi.fn()) {
       onAlphaPreview={() => undefined}
       onTogglePlayback={() => undefined}
       onStep={() => undefined}
-      onTrigger={onTrigger}
+      onRequestState={() => undefined}
+      onSendEvent={() => undefined}
+      onSendBinding={onBinding}
+      onRestartGraph={() => undefined}
       onToggleInteraction={() => undefined}
     />
   );
-  return onTrigger;
+  return onBinding;
 }
 
 describe("VideoStage interaction testing", () => {
   it("dispatches hover routes from the visible video in interactive mode", () => {
-    const onTrigger = renderStage("interactive");
+    const onBinding = renderStage("interactive");
     const canvas = screen.getByLabelText("interaction.mp4 preview");
 
     fireEvent.pointerEnter(canvas);
     fireEvent.pointerLeave(canvas);
 
-    expect(onTrigger).toHaveBeenNthCalledWith(1, "hover.enter");
-    expect(onTrigger).toHaveBeenNthCalledWith(2, "hover.leave");
-    expect(screen.getByRole("status").textContent).toContain("Live test");
+    expect(onBinding).toHaveBeenNthCalledWith(1, "pointer.enter");
+    expect(onBinding).toHaveBeenNthCalledWith(2, "pointer.leave");
+    expect(screen.getByRole("status").textContent).toContain("Live graph");
   });
 
   it("does not dispatch interaction routes in unit mode", () => {
-    const onTrigger = renderStage("unit");
+    const onBinding = renderStage("unit");
     const canvas = screen.getByLabelText("interaction.mp4 preview");
 
     fireEvent.pointerEnter(canvas);
     fireEvent.pointerLeave(canvas);
 
-    expect(onTrigger).not.toHaveBeenCalled();
+    expect(onBinding).not.toHaveBeenCalled();
   });
 });

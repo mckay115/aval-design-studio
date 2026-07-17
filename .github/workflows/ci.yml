@@ -17,7 +17,7 @@ jobs:
     name: Web, model, and native checks
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: pnpm/action-setup@v4
         with:

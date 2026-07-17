@@ -2,17 +2,57 @@ name: Release desktop app
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - "app-v*"
 
 permissions:
   contents: write
 
 concurrency:
-  group: desktop-release
+  group: desktop-release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
+  validate:
+    name: Validate release source
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Tauri Linux prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify source and synchronized release version
+        shell: bash
+        run: |
+          pnpm check
+          cargo check --locked --manifest-path src-tauri/Cargo.toml
+          VERSION="$(node -p "require('./package.json').version")"
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" != "app-v${VERSION}" ]]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package version app-v${VERSION}." >&2
+            exit 1
+          fi
+
   publish:
     name: ${{ matrix.label }}
+    needs: validate
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +72,7 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: pnpm/action-setup@v4
         with:
@@ -114,8 +154,10 @@ jobs:
           releaseDraft: true
           prerelease: false
           generateReleaseNotes: true
+          retryAttempts: 2
           uploadUpdaterJson: true
           uploadUpdaterSignatures: true
+          updaterJsonPreferNsis: true
           args: --target ${{ matrix.target }} --config src-tauri/tauri.release.conf.json
 
       - name: Attach toolchain provenance
@@ -124,3 +166,43 @@ jobs:
           name: toolchain-manifest-${{ matrix.target }}
           path: src-tauri/toolchain-runtime/toolchain-manifest.json
           if-no-files-found: error
+
+  publish-release:
+    name: Publish completed release
+    needs: publish
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download toolchain provenance
+        uses: actions/download-artifact@v5
+        with:
+          pattern: toolchain-manifest-*
+          path: provenance
+
+      - name: Attach provenance and checksums
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="app-v${VERSION}"
+          mkdir -p release-assets
+          for directory in provenance/toolchain-manifest-*; do
+            target="${directory#provenance/toolchain-manifest-}"
+            cp "${directory}/toolchain-manifest.json" "release-assets/toolchain-manifest-${target}.json"
+          done
+          gh release upload "${TAG}" release-assets/toolchain-manifest-*.json --clobber
+          rm -f release-assets/toolchain-manifest-*.json
+          gh release download "${TAG}" --dir release-assets
+          find release-assets -maxdepth 1 -type f ! -name SHA256SUMS -print0 \
+            | sort -z \
+            | xargs -0 shasum -a 256 \
+            | sed 's#  release-assets/#  #' > release-assets/SHA256SUMS
+          gh release upload "${TAG}" release-assets/SHA256SUMS --clobber
+
+      - name: Publish release for desktop updates
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          gh release edit "app-v${VERSION}" --draft=false --latest

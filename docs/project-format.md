@@ -1,6 +1,8 @@
 # Studio project format
 
-Studio saves UTF-8 `*.avalstudio.json` documents with `studioVersion: 2`. A Studio document contains editor-only selection state and preparation recipes alongside AVAL-shaped sources, units, states, routes, bindings, canvas, rational frame rate, alpha, and encoding preferences.
+Studio saves UTF-8 `*.avalstudio.json` documents with `studioVersion: 3`. A Studio document contains editor-only selection state and preparation recipes alongside AVAL-shaped sources, typed units, stable body states, authored routes, bindings, canvas, rational frame rate, alpha, and encoding preferences.
+
+In Studio v3, a state references a stable body unit. Entry, exit, one-shot, and reversible clips are typed units attached to routes or initial-state residency; they are not represented as temporary application states. Route start policies preserve AVAL portal, finish, and cut semantics explicitly.
 
 Frame ranges are always half-open `[startFrame, endFrame)`. Media URLs, MediaBunny objects, canvases, decoder state, and browser blob URLs are transient and are never serialized.
 
@@ -28,4 +30,4 @@ Before compilation, `toAvalProject` emits an exact AVAL project with `projectVer
 }
 ```
 
-Legacy version-1 segment documents remain readable by the legacy model but are not silently promoted into a buildable state graph. A future Open Project migration must preserve ranges and require resolution of ambiguous event/bridge semantics.
+Legacy version-1 segment documents remain readable by the legacy model but are not silently promoted into a buildable state graph. Studio v2 documents require an explicit migration because their route and transition semantics are not sufficient to infer every v3 unit, port, residency, and route-start policy safely.

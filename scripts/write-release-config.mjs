@@ -6,7 +6,7 @@ import { hostTargetTriple } from "./toolchain-lib.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const destination = resolve(root, "src-tauri/tauri.release.conf.json");
-const repository = process.env.GITHUB_REPOSITORY?.trim() || "zlisko/aval-design-studio";
+const repository = process.env.GITHUB_REPOSITORY?.trim() || "mckay115/aval-design-studio";
 const publicKey = process.env.TAURI_UPDATER_PUBLIC_KEY?.trim();
 const target = process.env.AVAL_TARGET_TRIPLE || hostTargetTriple();
 const extension = target.includes("windows") ? ".exe" : "";

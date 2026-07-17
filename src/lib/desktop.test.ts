@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { StudioProjectV2 } from "../model/studio";
+import type { StudioProjectV3 } from "../model/studio";
 
 const mocks = vi.hoisted(() => ({
   invoke: vi.fn(),
@@ -24,7 +24,7 @@ describe("saveStudioProject", () => {
 
   it("uses the native atomic save command without loading the filesystem plugin module", async () => {
     mocks.invoke.mockResolvedValue("/tmp/My-Motion.avalstudio.json");
-    const project = { name: "My Motion" } as StudioProjectV2;
+    const project = { name: "My Motion" } as StudioProjectV3;
 
     await expect(saveStudioProject(project)).resolves.toBe("/tmp/My-Motion.avalstudio.json");
     expect(mocks.invoke).toHaveBeenCalledWith("save_studio_project", {

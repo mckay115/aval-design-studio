@@ -1,0 +1,16 @@
+{
+  "name": "Aval Design Studio",
+  "short_name": "Aval Studio",
+  "description": "Visual authoring for AVAL interactive video assets.",
+  "start_url": "./",
+  "display": "browser",
+  "background_color": "#08090b",
+  "theme_color": "#08090b",
+  "icons": [
+    {
+      "src": "assets/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

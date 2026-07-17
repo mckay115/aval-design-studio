@@ -351,7 +351,7 @@ export function useMediaSession(
   }, [publishCanvas]);
 
   const playUnit = useCallback((unit: StudioUnit): void => {
-    startPlayback(unit.range, unit.playback === "loop", unit.id);
+    startPlayback(unit.range, unit.kind === "body" && unit.playback === "loop", unit.id);
   }, [startPlayback]);
 
   const togglePlayback = useCallback((): void => {
@@ -364,7 +364,7 @@ export function useMediaSession(
     const unitRange = previewMode === "source" || selectedUnit === null
       ? [0, media.totalFrames] as const
       : selectedUnit.range;
-    const loop = previewMode !== "source" && selectedUnit?.playback === "loop";
+    const loop = previewMode !== "source" && selectedUnit?.kind === "body" && selectedUnit.playback === "loop";
     startPlayback(unitRange, loop, null);
   }, [previewMode, selectedUnit, startPlayback, stop]);
 

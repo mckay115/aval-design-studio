@@ -11,6 +11,6 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "LICENSE", "README.md", "THIRD_PARTY_NOTICES.md"],
+  "files": ["dist", "src", "LICENSE", "README.md", "THIRD_PARTY_NOTICES.md"],
   "license": "MIT"
 }

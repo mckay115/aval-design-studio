@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/zlisko/aval-design-studio/security/advisories/new
+    about: Report security issues privately.
+  - name: AVAL format and runtime
+    url: https://github.com/pixel-point/aval/issues
+    about: Report issues in the AVAL format, compiler, element, or runtime upstream.

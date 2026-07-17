@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#08090b">
+    <meta name="color-scheme" content="dark">
+    <meta
+      name="description"
+      content="Aval Design Studio is the open-source visual authoring companion for the AVAL interactive video format."
+    >
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Aval Design Studio">
+    <meta
+      property="og:description"
+      content="Author state-driven AVAL bundles with frame-accurate states, routes, loops, reversals, and packed transparency."
+    >
+    <meta property="og:image" content="assets/product.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="stylesheet" href="styles.css">
+    <title>Aval Design Studio · Visual authoring for AVAL</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Aval Design Studio home">
+        <img src="assets/icon.png" alt="" width="44" height="44">
+        <span>Aval Design Studio</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#workflow">Workflow</a>
+        <a href="#features">Features</a>
+        <a href="#open-source">Open source</a>
+      </nav>
+      <a class="button button-small button-outline" href="https://github.com/mckay115/aval-design-studio">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.86c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.35 1.09 2.92.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.84a9.6 9.6 0 0 1 2.5.34c1.91-1.3 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
+        <span>View on GitHub</span>
+      </a>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top">
+        <div class="hero-copy">
+          <h1>Author interactive video, visually.</h1>
+          <p>
+            Turn source video into state-driven AVAL bundles with frame-accurate states,
+            routes, loops, reversals, and packed transparency.
+          </p>
+          <div class="button-row">
+            <a class="button button-primary" href="https://github.com/mckay115/aval-design-studio/releases/latest">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 19h14"/></svg>
+              <span>Download for desktop</span>
+            </a>
+            <a class="button button-outline" href="https://github.com/mckay115/aval-design-studio">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 9-4 3 4 3m8-6 4 3-4 3m-2-9-4 12"/></svg>
+              <span>Explore the source</span>
+            </a>
+          </div>
+          <p class="platforms">macOS <span>·</span> Windows <span>·</span> Linux</p>
+          <div class="route-lines" aria-hidden="true">
+            <span class="coral"></span><span class="teal"></span><span class="yellow"></span><span class="violet"></span>
+          </div>
+        </div>
+        <figure class="product-frame">
+          <img
+            src="assets/product.png"
+            alt="Aval Design Studio editor showing a source video, semantic timeline regions, frame controls, and a segment inspector."
+            width="1586"
+            height="992"
+          >
+        </figure>
+      </section>
+
+      <section class="workflow section" id="workflow">
+        <div class="section-heading">
+          <h2>From source video to a browser-ready bundle.</h2>
+        </div>
+        <ol class="workflow-list">
+          <li class="workflow-step coral">
+            <span class="step-number">01</span>
+            <div>
+              <h3>Import</h3>
+              <p>Open local media. Studio inspects timing, dimensions, codec, transparency, and source-prep requirements.</p>
+            </div>
+          </li>
+          <li class="workflow-step teal">
+            <span class="step-number">02</span>
+            <div>
+              <h3>Author</h3>
+              <p>Define states, units, routes, triggers, loops, reversals, and exact half-open frame ranges.</p>
+            </div>
+          </li>
+          <li class="workflow-step violet">
+            <span class="step-number">03</span>
+            <div>
+              <h3>Build</h3>
+              <p>Compile AV1, VP9, H.265, and H.264 assets with the official AVAL compiler.</p>
+            </div>
+          </li>
+        </ol>
+        <div class="timeline-detail" aria-hidden="true">
+          <div class="timeline-top">
+            <span>Idle</span><span>Entering</span><span>Hover loop</span><span>Exiting</span>
+          </div>
+          <div class="timeline-track">
+            <span class="coral"></span><span class="teal"></span><span class="yellow"></span><span class="violet"></span>
+          </div>
+          <div class="timeline-ruler"><span>0</span><span>60</span><span>120</span><span>330</span><span>450</span></div>
+          <div class="playhead"></div>
+        </div>
+      </section>
+
+      <section class="format-section section" id="features">
+        <div class="format-intro">
+          <h2>Built around the format, not beside it.</h2>
+          <p>
+            Studio projects project directly to AVAL 1.0. The compiler remains the final
+            authority for validation, encoding, manifests, and browser source markup.
+          </p>
+        </div>
+        <div class="feature-rail">
+          <article class="coral"><h3>Frame-accurate timeline</h3><p>Author with exact half-open frame ranges and precise state transitions.</p></article>
+          <article class="teal"><h3>Interactive state preview</h3><p>Scrub, step, and inspect states and routes with instant feedback.</p></article>
+          <article class="yellow"><h3>Packed-alpha workflow</h3><p>Prepare and validate transparency for reliable browser playback.</p></article>
+          <article class="violet"><h3>Local-first desktop</h3><p>Source media stays on your machine. No upload is required.</p></article>
+          <article class="coral"><h3>Reproducible builds</h3><p>Compiler, Node runtime, and media-tool provenance are pinned and recorded.</p></article>
+          <article class="teal"><h3>No competing encoder</h3><p>Uses the official AVAL compiler for encoding and browser-ready bundles.</p></article>
+        </div>
+      </section>
+
+      <section class="open-source section" id="open-source">
+        <div class="open-source-copy">
+          <h2>Open source, local first, ready to extend.</h2>
+          <p>
+            Aval Design Studio is an MIT-licensed community project built as a companion
+            to the open AVAL format. Source media stays on your machine, and the official
+            compiler owns the final bundle.
+          </p>
+          <div class="button-row">
+            <a class="button button-primary" href="https://github.com/mckay115/aval-design-studio/releases/latest">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 19h14"/></svg>
+              <span>Download the latest release</span>
+            </a>
+            <a class="button button-outline" href="https://github.com/mckay115/aval-design-studio">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.86c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.35 1.09 2.92.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.84a9.6 9.6 0 0 1 2.5.34c1.91-1.3 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
+              <span>View the repository</span>
+            </a>
+          </div>
+          <a class="text-link" href="https://github.com/mckay115/aval-design-studio/releases">Read the release notes <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="bundle-output">
+          <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          <ol>
+            <li class="coral"><span>av1.avl</span></li>
+            <li class="teal"><span>vp9.avl</span></li>
+            <li class="yellow"><span>h265.avl</span></li>
+            <li class="violet"><span>h264.avl</span></li>
+            <li><span>build.json</span></li>
+          </ol>
+          <p>One authored project. Four ordered codec outputs.</p>
+        </div>
+      </section>
+
+      <section class="closing section">
+        <img src="assets/icon.png" alt="" width="120" height="120">
+        <div>
+          <h2>Make interactive motion easier to ship.</h2>
+          <p>Author the state graph visually. Hand developers a browser-ready AVAL bundle.</p>
+        </div>
+        <a class="button button-dark" href="https://github.com/mckay115/aval-design-studio/releases/latest">Get Aval Design Studio</a>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="brand footer-brand">
+        <img src="assets/icon.png" alt="" width="38" height="38">
+        <span>Aval Design Studio <span aria-hidden="true">·</span> Open source</span>
+      </div>
+      <nav aria-label="Footer navigation">
+        <a href="https://pixelpoint.io/aval/">AVAL</a>
+        <a href="https://github.com/mckay115/aval-design-studio#readme">Documentation</a>
+        <a href="https://github.com/mckay115/aval-design-studio/blob/main/CONTRIBUTING.md">Contributing</a>
+        <a href="https://github.com/mckay115/aval-design-studio/security/policy">Security</a>
+        <a href="https://github.com/mckay115/aval-design-studio/blob/main/LICENSE">MIT License</a>
+      </nav>
+    </footer>
+  </body>
+</html>

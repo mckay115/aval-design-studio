@@ -13,10 +13,14 @@ function renderTopBar(onRename = vi.fn()) {
       projectName="Original project"
       sourceReady
       saved
+      canUndo={false}
+      canRedo={false}
       onImport={() => undefined}
       onRename={onRename}
       onSave={() => undefined}
       onBuild={() => undefined}
+      onUndo={() => undefined}
+      onRedo={() => undefined}
     />
   );
   return onRename;

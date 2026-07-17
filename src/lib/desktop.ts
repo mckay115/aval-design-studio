@@ -1,7 +1,7 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
-import type { StudioProjectV2 } from "../model/studio";
+import type { StudioProjectV3 } from "../model/studio";
 
 export interface PickedVideo {
   readonly name: string;
@@ -96,7 +96,7 @@ export async function readBuildInfo(): Promise<BuildInfo> {
   if (!isTauriRuntime()) {
     return {
       version: "development",
-      repository: "https://github.com/zlisko/aval-design-studio",
+      repository: "https://github.com/mckay115/aval-design-studio",
       packagedToolchain: false,
       updatesEnabled: false,
       toolchain: {
@@ -112,7 +112,7 @@ export async function readBuildInfo(): Promise<BuildInfo> {
   return await invoke<BuildInfo>("build_info");
 }
 
-function projectFileName(document: StudioProjectV2): string {
+function projectFileName(document: StudioProjectV3): string {
   const safe = document.name
     .trim()
     .replace(/[^a-z0-9._-]+/giu, "-")
@@ -121,7 +121,7 @@ function projectFileName(document: StudioProjectV2): string {
 }
 
 export async function saveStudioProject(
-  document: StudioProjectV2
+  document: StudioProjectV3
 ): Promise<string | null> {
   const contents = `${JSON.stringify(document, null, 2)}\n`;
   const name = projectFileName(document);

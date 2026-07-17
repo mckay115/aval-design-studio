@@ -74,7 +74,7 @@ export function ProjectNavigator({
       </section>
 
       <section className="nav-section interactions-section">
-        <header><span>Interactions <small>({project.routes.length}/64)</small></span><button type="button" aria-label="Add interaction" onClick={onAddInteraction}><PlusIcon /></button></header>
+        <header><span>Lifecycle <small>({project.routes.length}/64 routes)</small></span><button type="button" aria-label="Add route" onClick={onAddInteraction}><PlusIcon /></button></header>
         {project.routes.length === 0 ? <button type="button" className="empty-interactions" onClick={onAddInteraction}><PlusIcon /><span><strong>Add a route</strong><small>Connect states and decide what starts the change.</small></span></button> : (
           <div className="interaction-list">
             {project.routes.map((route) => {

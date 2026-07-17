@@ -233,7 +233,7 @@ export function Timeline({
         </div>
       ) : (
         <div className="route-track">
-          {routes.length === 0 ? <p>No routes yet. Use + next to Interactions to connect states.</p> : routes.map((route) => <button type="button" className={route.id === selectedId ? "is-selected" : ""} key={route.id} onClick={() => onSelectRoute(route.id)}><span>{route.from}</span><b>→</b><span>{route.to}</span><em>{route.trigger?.type === "event" ? route.trigger.name : route.trigger?.type === "completion" ? "completion" : "direct request"}</em></button>)}
+          {routes.length === 0 ? <p>No routes yet. Use + next to Lifecycle to connect states.</p> : routes.map((route) => <button type="button" className={route.id === selectedId ? "is-selected" : ""} key={route.id} onClick={() => onSelectRoute(route.id)}><span>{route.from}</span><b>→</b><span>{route.to}</span><em>{route.trigger?.type === "event" ? route.trigger.name : route.trigger?.type === "completion" ? "completion" : "direct request"}</em></button>)}
         </div>
       )}
 

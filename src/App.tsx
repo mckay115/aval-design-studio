@@ -473,7 +473,7 @@ export default function App() {
         <main className="editor-empty">
           <div className="empty-visual"><FilmIcon /><i /><i /></div>
           <h1>{media.status === "probing" ? "Reading your source…" : "Build an interactive video"}</h1>
-          <p>{media.status === "probing" ? "MediaBunny is detecting the container, codec, timing, color, and alpha capabilities." : "Import any local video the desktop toolchain can decode. Define states, preview interactions, then build an efficient AVAL bundle."}</p>
+          <p>{media.status === "probing" ? "MediaBunny is detecting the container, codec, timing, color, and alpha capabilities." : "Import any local video the desktop toolchain can decode. Define states, preview the animation lifecycle, then build an efficient AVAL bundle."}</p>
           {media.error === null ? null : <div className="empty-error">{media.error}</div>}
           <div className="empty-actions">
             <button className="button button-secondary" type="button" disabled={media.status === "probing"} onClick={() => void openProject()}>Open Project</button>

@@ -98,8 +98,8 @@ export function VideoStage({
         <div className="preview-state-label"><i aria-hidden="true" />{activeState?.name ?? "Source"}</div>
         <div className="preview-resolution">{descriptor.width}×{descriptor.height}<span>· {aspectRatioLabel(descriptor.width, descriptor.height)}</span></div>
         {mode === "interactive" ? <div className="interaction-guide" role="status"><i aria-hidden="true" />Live graph · {graphSnapshot?.phase ?? "starting"}</div> : null}
-        {mode === "interactive" ? <aside className="interaction-console" aria-label="Interaction demo tester">
-          <header><div><strong>Interaction tester</strong><span>{graphSnapshot?.visualState ?? activeState?.id ?? "starting"} · {graphSnapshot?.phase ?? "preparing"}</span></div><button type="button" onClick={onRestartGraph}>Restart</button></header>
+        {mode === "interactive" ? <aside className="interaction-console" aria-label="Lifecycle demo tester">
+          <header><div><strong>Lifecycle tester</strong><span>{graphSnapshot?.visualState ?? activeState?.id ?? "starting"} · {graphSnapshot?.phase ?? "preparing"}</span></div><button type="button" onClick={onRestartGraph}>Restart</button></header>
           <div className="interaction-test-section"><span>Request a state</span><div>{states.map((state) => <button key={state.id} type="button" className={state.id === graphSnapshot?.requestedState ? "is-active" : ""} onClick={() => onRequestState(state.id)}>{state.name}</button>)}</div></div>
           <div className="interaction-test-section"><span>Host controls</span><div>{STUDIO_BINDING_SOURCES.filter((source) => bindings.some((binding) => binding.source === source)).map((source) => <button key={source} type="button" onClick={() => onSendBinding(source)}>{source}</button>)}</div></div>
           <form onSubmit={(event) => { event.preventDefault(); if (customEvent.trim().length > 0) onSendEvent(customEvent.trim()); }}><input aria-label="Custom graph event" value={customEvent} placeholder="custom.event" onChange={(event) => setCustomEvent(event.currentTarget.value)} /><button type="submit">Send</button></form>
@@ -126,7 +126,7 @@ export function VideoStage({
           </select>
         </div>
         <label className="interaction-toggle">
-          <span>Test interactions</span>
+          <span>Test lifecycle</span>
           <input type="checkbox" checked={mode === "interactive"} onChange={onToggleInteraction} />
           <i aria-hidden="true" />
         </label>

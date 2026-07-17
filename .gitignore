@@ -1,0 +1,20 @@
+node_modules/
+dist/
+src-tauri/target/
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+
+# Generated authoring artifacts
+.aval-cache/
+.toolchain/
+*.avl
+*.avl.build.json
+
+# Per-platform binaries are supplied by release jobs.
+src-tauri/binaries/*
+!src-tauri/binaries/.gitkeep
+src-tauri/toolchain-runtime/
+src-tauri/tauri.release.conf.json

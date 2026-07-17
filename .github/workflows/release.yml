@@ -10,13 +10,17 @@ permissions:
   contents: write
 
 concurrency:
-  group: desktop-release-${{ github.ref }}
+  group: desktop-release-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
   validate:
     name: Validate release source
     runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      tag: ${{ steps.release.outputs.tag }}
+      source-sha: ${{ steps.release.outputs.source-sha }}
     steps:
       - uses: actions/checkout@v7
 
@@ -40,6 +44,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify source and synchronized release version
+        id: release
         shell: bash
         run: |
           pnpm check
@@ -49,10 +54,72 @@ jobs:
             echo "Tag ${GITHUB_REF_NAME} does not match package version app-v${VERSION}." >&2
             exit 1
           fi
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "tag=app-v${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "source-sha=$(git rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
+
+  create-release:
+    name: Create one draft release
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      release-id: ${{ steps.release.outputs.release-id }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.validate.outputs.version }}
+      TAG: ${{ needs.validate.outputs.tag }}
+      SOURCE_SHA: ${{ needs.validate.outputs.source-sha }}
+    steps:
+      - name: Verify updater signing material
+        shell: bash
+        env:
+          TAURI_UPDATER_PUBLIC_KEY: ${{ secrets.TAURI_UPDATER_PUBLIC_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if [[ -z "${TAURI_UPDATER_PUBLIC_KEY}" || -z "${TAURI_SIGNING_PRIVATE_KEY}" ]]; then
+            echo "TAURI_UPDATER_PUBLIC_KEY and TAURI_SIGNING_PRIVATE_KEY must be configured before releasing." >&2
+            exit 1
+          fi
+
+      - name: Create or reuse the coordinated draft
+        id: release
+        shell: bash
+        run: |
+          RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" 2>/dev/null || true)"
+          if [[ -n "${RELEASE_JSON}" ]]; then
+            if [[ "$(jq -r '.draft' <<< "${RELEASE_JSON}")" != "true" ]]; then
+              echo "Release ${TAG} already exists and is published; refusing to replace it." >&2
+              exit 1
+            fi
+            RELEASE_ID="$(jq -r '.id' <<< "${RELEASE_JSON}")"
+          else
+            RELEASE_JSON="$(gh api --method POST "repos/${GITHUB_REPOSITORY}/releases" \
+              -F "tag_name=${TAG}" \
+              -F "target_commitish=${SOURCE_SHA}" \
+              -F "name=AVAL Design Studio v${VERSION}" \
+              -F "body=Installers and signed in-app update artifacts for AVAL Design Studio." \
+              -F draft=true \
+              -F prerelease=false \
+              -F generate_release_notes=true)"
+            RELEASE_ID="$(jq -r '.id' <<< "${RELEASE_JSON}")"
+          fi
+          TAG_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${TAG}" --jq '.sha')"
+          if [[ "${TAG_SHA}" != "${SOURCE_SHA}" ]]; then
+            echo "Release tag ${TAG} points to ${TAG_SHA}; expected validated commit ${SOURCE_SHA}." >&2
+            exit 1
+          fi
+          if [[ ! "${RELEASE_ID}" =~ ^[0-9]+$ ]]; then
+            echo "GitHub did not return a numeric release ID for ${TAG}." >&2
+            exit 1
+          fi
+          echo "All platform jobs will upload to release ${RELEASE_ID} (${TAG})."
+          echo "release-id=${RELEASE_ID}" >> "${GITHUB_OUTPUT}"
 
   publish:
     name: ${{ matrix.label }}
-    needs: validate
+    needs:
+      - validate
+      - create-release
     strategy:
       fail-fast: false
       matrix:
@@ -143,17 +210,14 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY || '-' }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
-          tagName: app-v__VERSION__
-          releaseName: Aval Design Studio v__VERSION__
-          releaseBody: Installers and signed in-app update artifacts for Aval Design Studio.
+          releaseId: ${{ needs.create-release.outputs.release-id }}
+          tagName: ${{ needs.validate.outputs.tag }}
           releaseDraft: true
-          prerelease: false
-          generateReleaseNotes: true
           retryAttempts: 2
           uploadUpdaterJson: true
           uploadUpdaterSignatures: true
@@ -169,10 +233,16 @@ jobs:
 
   publish-release:
     name: Publish completed release
-    needs: publish
+    needs:
+      - validate
+      - create-release
+      - publish
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.validate.outputs.version }}
+      TAG: ${{ needs.validate.outputs.tag }}
+      RELEASE_ID: ${{ needs.create-release.outputs.release-id }}
     steps:
       - uses: actions/checkout@v7
 
@@ -185,8 +255,11 @@ jobs:
       - name: Attach provenance and checksums
         shell: bash
         run: |
-          VERSION="$(node -p "require('./package.json').version")"
-          TAG="app-v${VERSION}"
+          ACTUAL_RELEASE_ID="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id')"
+          if [[ "${ACTUAL_RELEASE_ID}" != "${RELEASE_ID}" ]]; then
+            echo "Release ID changed from ${RELEASE_ID} to ${ACTUAL_RELEASE_ID}." >&2
+            exit 1
+          fi
           mkdir -p release-assets
           for directory in provenance/toolchain-manifest-*; do
             target="${directory#provenance/toolchain-manifest-}"
@@ -195,6 +268,7 @@ jobs:
           gh release upload "${TAG}" release-assets/toolchain-manifest-*.json --clobber
           rm -f release-assets/toolchain-manifest-*.json
           gh release download "${TAG}" --dir release-assets
+          pnpm release:verify-assets -- release-assets "${VERSION}"
           find release-assets -maxdepth 1 -type f ! -name SHA256SUMS -print0 \
             | sort -z \
             | xargs -0 shasum -a 256 \
@@ -204,5 +278,4 @@ jobs:
       - name: Publish release for desktop updates
         shell: bash
         run: |
-          VERSION="$(node -p "require('./package.json').version")"
-          gh release edit "app-v${VERSION}" --draft=false --latest
+          gh release edit "${TAG}" --draft=false --latest

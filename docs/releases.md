@@ -24,7 +24,7 @@ Never commit the private key. Losing it prevents installed builds from trusting 
 
 ## 3. Platform signing
 
-Updater signatures protect update integrity but do not replace operating-system signing. Before broadly distributing releases, configure Apple Developer ID signing/notarization and a Windows code-signing certificate. Linux packages do not share one universal signing system; publish checksums and use the signed updater artifact for in-app updates.
+Updater signatures protect update integrity but do not replace operating-system signing. Before broadly distributing releases, configure Apple Developer ID signing/notarization and a Windows code-signing certificate. Until Apple secrets are configured, the workflow uses Tauri's ad-hoc identity so both macOS architectures can still produce testable artifacts. Linux packages do not share one universal signing system; publish checksums and use the signed updater artifact for in-app updates.
 
 ## 4. Publish the required media toolchain
 
@@ -41,13 +41,15 @@ Choose one release trigger:
 - Push the matching tag, for example `app-v0.1.0`; or
 - Run **Release desktop app** manually from the Actions tab.
 
-The workflow validates the source, builds all four supported targets, uploads signed updater artifacts and `latest.json` to a draft release, attaches per-target provenance and `SHA256SUMS`, and publishes the release only after every target succeeds. The published release is marked latest, so installed builds discover it on their next update check.
+The workflow validates the source and creates exactly one coordinated draft release pinned to that validated commit. Its numeric GitHub release ID is passed to the macOS Apple Silicon, macOS Intel, Linux x64, and Windows x64 jobs, so every installer and updater artifact is attached to the same release even when builds finish in a different order.
+
+After all four builds succeed, the final job downloads the complete draft and verifies the platform installer families, signed updater entries, and per-target toolchain provenance. It then attaches `SHA256SUMS` and publishes the release as latest. A missing target leaves the release in draft, so installed builds never receive a partial `latest.json`.
 
 Do not manually publish a partial draft created by a failed workflow. Fix the failed target and rerun the workflow so `latest.json` remains complete for every supported platform.
 
 ## 6. Verify a published release
 
-1. Confirm the release contains installers, updater signatures, `latest.json`, four toolchain manifests, and `SHA256SUMS`.
+1. Confirm the single release contains macOS Apple Silicon and Intel DMGs, Windows NSIS and MSI installers, Linux AppImage, DEB, and RPM packages, updater signatures, `latest.json`, four toolchain manifests, and `SHA256SUMS`.
 2. Install the previous release on each supported OS, publish the new version, and verify check → download → signature verification → install → relaunch.
 3. Confirm the Pages download buttons resolve to the new GitHub release.
 4. Preserve the updater private key and its password in an offline backup. They are required for every future update trusted by existing installations.

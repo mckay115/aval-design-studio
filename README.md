@@ -26,7 +26,7 @@ Download the latest installer for macOS, Windows, or Linux from [GitHub Releases
 2. Review Source Prep. Compiler-ready MOV/MP4/M4V sources pass through; other formats receive a remux or ProRes normalization plan.
 3. Author semantic states, units, routes, and bindings on exact half-open frame ranges.
 4. Preview the complete source, one unit, or interactive state changes using MediaBunny timestamps.
-5. Save an editable `*.avalstudio.json` Studio v3 document.
+5. Save an editable `*.avalstudio` Studio v3 document.
 6. In the desktop app, choose Balanced Web, Fast Draft, or Custom and build codec-specific `.avl` assets plus `build.json`.
 
 Browser development builds deliberately disable compilation. Distributed desktop builds include the pinned AVAL compiler, its private Node runtime, FFmpeg, and FFprobe; users do not install sidecars. Each release fails closed unless all four reviewed AV1, VP9, H265, and H264 encoders and complete provenance are present.

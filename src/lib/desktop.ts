@@ -36,6 +36,33 @@ export interface CompileResult {
   readonly warnings: readonly string[];
 }
 
+export const ACCEPTED_VIDEO_EXTENSIONS = [
+  "mp4",
+  "m4v",
+  "mov",
+  "webm",
+  "mkv",
+  "ogv",
+  "ogg",
+  "ts",
+  "mts",
+  "m2ts",
+  "3gp",
+  "3g2"
+] as const;
+
+const ACCEPTED_VIDEO_EXTENSION_SET = new Set<string>(ACCEPTED_VIDEO_EXTENSIONS);
+const ACCEPTED_VIDEO_ACCEPT = ACCEPTED_VIDEO_EXTENSIONS.map((extension) => `.${extension}`).join(",");
+
+export function isAcceptedVideoFileName(name: string): boolean {
+  const extension = name.split(".").at(-1)?.toLowerCase();
+  return extension !== undefined && extension !== name.toLowerCase() && ACCEPTED_VIDEO_EXTENSION_SET.has(extension);
+}
+
+function unsupportedVideoMessage(name: string): string {
+  return `${name} is not a supported video file. Choose MP4, M4V, MOV, WebM, MKV, OGV, MPEG-TS, MTS, M2TS, 3GP, or 3G2.`;
+}
+
 export function isTauriRuntime(): boolean {
   return typeof window !== "undefined" && window.__TAURI_INTERNALS__ !== undefined;
 }
@@ -45,15 +72,20 @@ function fileName(path: string): string {
 }
 
 async function pickBrowserVideo(): Promise<PickedVideo | null> {
-  return await new Promise((resolve) => {
+  return await new Promise((resolve, reject) => {
     const input = document.createElement("input");
     input.type = "file";
+    input.accept = ACCEPTED_VIDEO_ACCEPT;
     input.hidden = true;
     input.addEventListener("change", () => {
       const file = input.files?.[0];
       input.remove();
       if (file === undefined) {
         resolve(null);
+        return;
+      }
+      if (!isAcceptedVideoFileName(file.name)) {
+        reject(new Error(unsupportedVideoMessage(file.name)));
         return;
       }
       const url = URL.createObjectURL(file);
@@ -80,9 +112,14 @@ export async function pickVideo(): Promise<PickedVideo | null> {
   const selected = await open({
     multiple: false,
     directory: false,
-    title: "Open video"
+    title: "Open video",
+    filters: [{
+      name: "Supported video",
+      extensions: [...ACCEPTED_VIDEO_EXTENSIONS]
+    }]
   });
   if (selected === null || Array.isArray(selected)) return null;
+  if (!isAcceptedVideoFileName(selected)) throw new Error(unsupportedVideoMessage(fileName(selected)));
   return {
     name: fileName(selected),
     path: selected,
@@ -117,7 +154,7 @@ function projectFileName(document: StudioProjectV3): string {
     .trim()
     .replace(/[^a-z0-9._-]+/giu, "-")
     .replace(/^-+|-+$/gu, "") || "motion";
-  return `${safe}.avalstudio.json`;
+  return `${safe}.avalstudio`;
 }
 
 export async function saveStudioProject(
@@ -132,7 +169,7 @@ export async function saveStudioProject(
     });
   }
 
-  const blob = new Blob([contents], { type: "application/json" });
+  const blob = new Blob([contents], { type: "application/vnd.aval-studio+json" });
   const url = URL.createObjectURL(blob);
   const anchor = documentElement("a");
   anchor.href = url;

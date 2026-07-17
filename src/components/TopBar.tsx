@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { CubeIcon, FolderIcon, SaveIcon } from "./Icons";
+import { ChevronDownIcon, CubeIcon, FolderIcon, RedoIcon, SaveIcon, UndoIcon } from "./Icons";
 
 interface TopBarProps {
   readonly projectName: string | null;
@@ -59,7 +59,6 @@ export function TopBar({
 
   return (
     <header className="top-bar">
-      <div className="traffic-lights" aria-hidden="true"><i /><i /><i /></div>
       <div className="wordmark" aria-label="AVAL Design Studio">AVAL</div>
       <span className="toolbar-divider" aria-hidden="true" />
       <div
@@ -78,7 +77,7 @@ export function TopBar({
           onClick={renaming ? cancelRename : openRename}
         >
           <span className="project-menu-name">{currentName}</span>
-          <span className={`project-menu-chevron${renaming ? " is-open" : ""}`} aria-hidden="true">⌄</span>
+          <ChevronDownIcon className={`project-menu-chevron${renaming ? " is-open" : ""}`} />
         </button>
         {renaming ? (
           <div id="project-name-popover" className="project-name-popover" role="dialog" aria-label="Rename project">
@@ -109,8 +108,8 @@ export function TopBar({
         ) : null}
       </div>
       <div className="history-actions" aria-label="Graph history">
-        <button type="button" disabled={!canUndo} aria-label="Undo graph edit" title="Undo (⌘Z)" onClick={onUndo}>↶</button>
-        <button type="button" disabled={!canRedo} aria-label="Redo graph edit" title="Redo (⇧⌘Z)" onClick={onRedo}>↷</button>
+        <button type="button" disabled={!canUndo} aria-label="Undo graph edit" title="Undo (⌘Z)" onClick={onUndo}><UndoIcon /></button>
+        <button type="button" disabled={!canRedo} aria-label="Redo graph edit" title="Redo (⇧⌘Z)" onClick={onRedo}><RedoIcon /></button>
       </div>
       <div className="save-indicator" aria-live="polite">
         <i className={saved ? "is-saved" : "is-dirty"} aria-hidden="true" />

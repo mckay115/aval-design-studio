@@ -76,6 +76,9 @@ export default function App() {
   const selectionRef = useRef<PickedVideo | null>(null);
   const pendingStateRef = useRef<string | null>(null);
   const pendingEventRef = useRef<string | null>(null);
+  const resizePreviewReturnFrameRef = useRef<number | null>(null);
+  const resizePreviewSerialRef = useRef(0);
+  const mediaFrameRef = useRef(0);
   const [selection, setSelection] = useState<PickedVideo | null>(null);
   const history = useProjectHistory();
   const project = history.project;
@@ -83,6 +86,7 @@ export default function App() {
   const [drawer, setDrawer] = useState<"build" | "source" | null>(null);
   const [dialog, setDialog] = useState<"add-state" | "add-route" | null>(null);
   const [deleteStateId, setDeleteStateId] = useState<string | null>(null);
+  const [resizePreviewPlayhead, setResizePreviewPlayhead] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [building, setBuilding] = useState(false);
   const [buildResult, setBuildResult] = useState<CompileResult | null>(null);
@@ -96,6 +100,7 @@ export default function App() {
   const updater = useUpdater(buildInfo.updatesEnabled);
   const selectedUnit = project === null ? null : projectSelectedUnit(project);
   const media = useMediaSession(selection, project?.editor.previewMode ?? "unit", selectedUnit, alphaPreview);
+  mediaFrameRef.current = media.currentFrame;
   const graph = useGraphPreview(project, project?.editor.previewMode === "interactive", media.seekFrame);
   const activeStateId = project?.editor.previewMode === "interactive" ? graph.activeStateId : project?.initialState ?? "";
   const activeState = project?.states.find((state) => state.id === activeStateId) ?? null;
@@ -221,6 +226,26 @@ export default function App() {
       : [unit.range[0], Math.max(unit.range[0] + 1, frame)];
     commitProject((current) => requireValidProject(updateUnit(current, unitId, { range })));
   }, [commitProject, project]);
+
+  const previewUnitResize = useCallback((frame: number): void => {
+    if (resizePreviewReturnFrameRef.current === null) {
+      const playheadFrame = mediaFrameRef.current;
+      resizePreviewReturnFrameRef.current = playheadFrame;
+      resizePreviewSerialRef.current += 1;
+      setResizePreviewPlayhead(playheadFrame);
+    }
+    void media.seekFrame(frame);
+  }, [media.seekFrame]);
+
+  const endUnitResizePreview = useCallback((): void => {
+    const returnFrame = resizePreviewReturnFrameRef.current;
+    resizePreviewReturnFrameRef.current = null;
+    if (returnFrame === null) return;
+    const serial = ++resizePreviewSerialRef.current;
+    void media.seekFrame(returnFrame).finally(() => {
+      if (resizePreviewSerialRef.current === serial) setResizePreviewPlayhead(null);
+    });
+  }, [media.seekFrame]);
 
   const applyStateChanges = useCallback((stateId: string, draft: StateInspectorDraft): void => {
     commitProject((current) => applyStateEdit(current, stateId, draft), "State updated");
@@ -362,7 +387,7 @@ export default function App() {
             <ProjectNavigator project={project} activeStateId={activeStateId} thumbnail={media.thumbnails[0] ?? null} onSelectState={selectState} onPreviewState={previewState} onSelectRoute={selectRoute} onTrigger={triggerInteraction} onAddState={() => setDialog("add-state")} onAddInteraction={() => setDialog("add-route")} onDuplicateState={(stateId) => commitProject((current) => duplicateState(current, stateId), "State duplicated")} onSetInitialState={(stateId) => commitProject((current) => setInitialState(current, stateId), "Initial state updated")} onDeleteState={setDeleteStateId} onUnavailableAction={setToast} />
             <main className="editor-center">
               <VideoStage canvasRef={media.canvasRef} descriptor={project.sources[0]!.descriptor} mode={project.editor.previewMode} alphaPreview={alphaPreview} activeState={activeState} states={project.states} bindings={project.bindings} graphSnapshot={graph.snapshot} graphError={graph.error} currentFrame={media.currentFrame} isPlaying={media.isPlaying} status={media.status} error={media.error} onMode={changePreviewMode} onAlphaPreview={setAlphaPreview} onTogglePlayback={media.togglePlayback} onStep={media.stepFrame} onRequestState={previewState} onSendEvent={triggerInteraction} onSendBinding={graph.sendBinding} onRestartGraph={graph.restart} onToggleInteraction={() => changePreviewMode(project.editor.previewMode === "interactive" ? "unit" : "interactive")} />
-              <Timeline units={project.units} routes={project.routes} selectedId={timelineSelectedId} currentFrame={media.currentFrame} totalFrames={project.sources[0]!.descriptor.totalFrames} frameRate={project.frameRate} thumbnails={media.thumbnails} onSelect={selectUnit} onSelectRoute={selectRoute} onSeek={media.seekFrame} onResize={resizeUnit} />
+              <Timeline units={project.units} routes={project.routes} selectedId={timelineSelectedId} currentFrame={resizePreviewPlayhead ?? media.currentFrame} totalFrames={project.sources[0]!.descriptor.totalFrames} frameRate={project.frameRate} thumbnails={media.thumbnails} onSelect={selectUnit} onSelectRoute={selectRoute} onSeek={media.seekFrame} onResize={resizeUnit} onResizePreview={previewUnitResize} onResizePreviewEnd={endUnitResizePreview} />
             </main>
             <Inspector project={project} preparation={project.sources[0]!.preparation} onApplyState={applyStateChanges} onApplyUnit={applyUnitChanges} onApplyRoute={applyRouteChanges} onDeleteRoute={(routeId) => commitProject((current) => deleteRoute(current, routeId), "Route deleted")} onAddTransition={addTransition} onRemoveTransition={removeTransition} onReviewPrep={() => setDrawer("source")} />
             {drawer === null ? null : <BuildDrawer view={drawer} projectName={project.name} source={project.sources[0]!} build={project.build} validation={validation} toolchain={health} building={building} result={buildResult} onClose={() => setDrawer(null)} onChange={changeBuild} onDestination={() => void chooseDestination()} onBuild={() => void buildBundle()} />}

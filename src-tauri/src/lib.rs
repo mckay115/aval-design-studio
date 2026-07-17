@@ -272,7 +272,7 @@ async fn save_studio_project(
         .file_name()
         .and_then(|name| name.to_str())
         .filter(|name| !name.is_empty())
-        .unwrap_or("motion.avalstudio.json")
+        .unwrap_or("motion.avalstudio")
         .to_owned();
     let contents = format!(
         "{}\n",
@@ -285,7 +285,7 @@ async fn save_studio_project(
             .file()
             .set_title("Save Aval Studio project")
             .set_file_name(safe_name)
-            .add_filter("Aval Studio project", &["json"])
+            .add_filter("Aval Studio project", &["avalstudio"])
             .blocking_save_file();
         let Some(selected) = selected else {
             return Ok(None);

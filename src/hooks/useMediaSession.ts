@@ -26,7 +26,7 @@ interface MediaSession {
   readonly currentSeconds: number;
   readonly isPlaying: boolean;
   readonly playbackCompletion: { readonly serial: number; readonly unitId: string | null };
-  readonly seekFrame: (frame: number) => void;
+  readonly seekFrame: (frame: number) => Promise<void>;
   readonly stepFrame: (direction: -1 | 1) => void;
   readonly playUnit: (unit: StudioUnit) => void;
   readonly togglePlayback: () => void;
@@ -116,6 +116,8 @@ export function useMediaSession(
   const descriptorRef = useRef<MediaDescriptor | null>(null);
   const sourceGenerationRef = useRef(0);
   const playbackGenerationRef = useRef(0);
+  const pendingRenderRef = useRef<{ readonly frame: number; readonly sourceGeneration: number } | null>(null);
+  const renderWorkerRef = useRef<Promise<void> | null>(null);
   const playingRef = useRef(false);
   const frameRef = useRef(0);
   const completionSerialRef = useRef(0);
@@ -146,23 +148,46 @@ export function useMediaSession(
     setIsPlaying(false);
   }, []);
 
-  const renderFrame = useCallback(async (frame: number, stopPlayback = true): Promise<void> => {
-    const sink = sinkRef.current;
-    const media = descriptorRef.current;
-    if (sink === null || media === null) return;
-    if (stopPlayback) stop();
-    const generation = ++playbackGenerationRef.current;
-    const clamped = Math.min(media.totalFrames - 1, Math.max(0, Math.round(frame)));
-    try {
-      const wrapped = await sink.getCanvas(secondsForFrame(clamped, media.frameRate));
-      if (wrapped === null || generation !== playbackGenerationRef.current) return;
-      publishCanvas(wrapped);
-    } catch (reason) {
-      if (generation === playbackGenerationRef.current) {
-        setError(reason instanceof Error ? reason.message : "The requested video frame could not be decoded.");
+  const drainRenderQueue = useCallback(async (): Promise<void> => {
+    while (pendingRenderRef.current !== null) {
+      const request = pendingRenderRef.current;
+      pendingRenderRef.current = null;
+      const sink = sinkRef.current;
+      const media = descriptorRef.current;
+      if (sink === null || media === null || request.sourceGeneration !== sourceGenerationRef.current) continue;
+      const clamped = Math.min(media.totalFrames - 1, Math.max(0, Math.round(request.frame)));
+      try {
+        const wrapped = await sink.getCanvas(secondsForFrame(clamped, media.frameRate));
+        if (wrapped === null || request.sourceGeneration !== sourceGenerationRef.current || sink !== sinkRef.current) continue;
+        publishCanvas(wrapped);
+      } catch (reason) {
+        if (request.sourceGeneration === sourceGenerationRef.current) {
+          setError(reason instanceof Error ? reason.message : "The requested video frame could not be decoded.");
+        }
       }
     }
-  }, [publishCanvas, stop]);
+  }, [publishCanvas]);
+
+  const renderFrame = useCallback(async (frame: number, stopPlayback = true): Promise<void> => {
+    const media = descriptorRef.current;
+    if (sinkRef.current === null || media === null) return;
+    if (stopPlayback) stop();
+    pendingRenderRef.current = { frame, sourceGeneration: sourceGenerationRef.current };
+
+    while (pendingRenderRef.current !== null) {
+      if (renderWorkerRef.current !== null) {
+        await renderWorkerRef.current;
+        continue;
+      }
+      const worker = drainRenderQueue();
+      renderWorkerRef.current = worker;
+      try {
+        await worker;
+      } finally {
+        if (renderWorkerRef.current === worker) renderWorkerRef.current = null;
+      }
+    }
+  }, [drainRenderQueue, stop]);
 
   useEffect(() => {
     alphaPreviewRef.current = alphaPreview;
@@ -179,6 +204,7 @@ export function useMediaSession(
     setThumbnails([]);
     setCurrentFrame(0);
     frameRef.current = 0;
+    pendingRenderRef.current = null;
     setCurrentSeconds(0);
     setError(null);
     inputRef.current?.dispose();
@@ -290,6 +316,7 @@ export function useMediaSession(
     return () => {
       sourceGenerationRef.current += 1;
       playbackGenerationRef.current += 1;
+      pendingRenderRef.current = null;
       playingRef.current = false;
       inputRef.current?.dispose();
       inputRef.current = null;
@@ -368,8 +395,8 @@ export function useMediaSession(
     startPlayback(unitRange, loop, null);
   }, [previewMode, selectedUnit, startPlayback, stop]);
 
-  const seekFrame = useCallback((frame: number): void => {
-    void renderFrame(frame);
+  const seekFrame = useCallback(async (frame: number): Promise<void> => {
+    await renderFrame(frame);
   }, [renderFrame]);
 
   const stepFrame = useCallback((direction: -1 | 1): void => {

@@ -1,6 +1,6 @@
 # Studio project format
 
-Studio saves UTF-8 `*.avalstudio.json` documents with `studioVersion: 3`. A Studio document contains editor-only selection state and preparation recipes alongside AVAL-shaped sources, typed units, stable body states, authored routes, bindings, canvas, rational frame rate, alpha, and encoding preferences.
+Studio saves UTF-8 `*.avalstudio` JSON documents with `studioVersion: 3`. A Studio document contains editor-only selection state and preparation recipes alongside AVAL-shaped sources, typed units, stable body states, authored routes, bindings, canvas, rational frame rate, alpha, and encoding preferences.
 
 In Studio v3, a state references a stable body unit. Entry, exit, one-shot, and reversible clips are typed units attached to routes or initial-state residency; they are not represented as temporary application states. Route start policies preserve AVAL portal, finish, and cut semantics explicitly.
 

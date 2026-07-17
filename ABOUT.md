@@ -31,7 +31,7 @@ The application currently provides:
 - editable segment roles and event names;
 - segment splitting, resizing, selection, and deletion;
 - selected-segment playback, including loop behavior;
-- versioned `.avalstudio.json` project saving;
+- versioned `.avalstudio` project saving;
 - an Unsaved/Saved document state;
 - a Tauri-native shell for macOS, Windows, and Linux;
 - a least-privilege Tauri capability configuration;
@@ -63,7 +63,7 @@ AVAL is the project and target-asset name used by the surrounding system. This r
 Three file/product concepts are distinct:
 
 - **Aval Design Studio** is the desktop authoring application.
-- **`.avalstudio.json`** is the editable, human-readable project document currently produced by the application.
+- **`.avalstudio`** is the editable, human-readable JSON project document currently produced by the application.
 - **`.avl`** is the intended compiled runtime asset. Compilation is not implemented in this milestone.
 
 ## Product principles
@@ -290,7 +290,7 @@ Thumbnails are not written to disk and are not retained between sessions.
 The current primary output is a project document named:
 
 ```text
-<sanitized-video-name>.avalstudio.json
+<sanitized-video-name>.avalstudio
 ```
 
 In Tauri, a native save dialog chooses the destination and the scoped filesystem plugin writes the text. In browser development, the app creates a JSON blob and triggers a download.
@@ -349,7 +349,7 @@ The application icon was generated specifically for this project. It combines a 
 │          │                       │                               │
 │          │                       └────► segment invariants        │
 │          ▼                                                       │
-│  Native save dialog ──► .avalstudio.json                         │
+│  Native save dialog ──► .avalstudio                              │
 │                                                                  │
 │  Future explicit Export action only                              │
 │          │                                                       │
@@ -932,7 +932,7 @@ The editor was then exercised in headless Chrome because the in-app browser runt
 - frame stepping;
 - play and pause state changes;
 - Unsaved before persistence and Saved after persistence;
-- `.avalstudio.json` download with the edited segment present;
+- `.avalstudio` download with the edited segment present;
 - no horizontal page overflow at 1440 × 900 and 820 × 900.
 
 ### Native startup incident and resolution
@@ -1002,7 +1002,7 @@ Status: substantially complete.
 
 ### Milestone 2 — Durable projects and exact source facts
 
-- open `.avalstudio.json` files;
+- open `.avalstudio` files;
 - validate and migrate project versions;
 - resolve relative/portable source references;
 - prompt to relink missing media;

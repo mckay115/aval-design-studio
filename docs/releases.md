@@ -17,8 +17,13 @@ pnpm tauri signer generate -w ~/.tauri/aval-design-studio.key
 Add these GitHub Actions secrets:
 
 - `TAURI_SIGNING_PRIVATE_KEY` — the complete private key contents;
-- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — the key password, or an empty value if intentionally generated without one;
-- `TAURI_UPDATER_PUBLIC_KEY` — the printed public key. This is not secret, but storing it with release settings keeps the generated config out of source control.
+- `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` — the key password, or an empty value if intentionally generated without one.
+
+Add the printed public key as the GitHub Actions repository variable
+`TAURI_UPDATER_PUBLIC_KEY`. The release workflow reads it through the `vars`
+context and injects it into each build as the `TAURI_UPDATER_PUBLIC_KEY`
+environment variable. A legacy secret with the same name remains supported as
+a fallback, but new repositories should use the non-sensitive Actions variable.
 
 Never commit the private key. Losing it prevents installed builds from trusting future updates; leaking it requires a new trust/distribution plan.
 

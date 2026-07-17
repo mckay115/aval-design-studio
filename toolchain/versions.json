@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "aval": {
+    "repository": "https://github.com/pixel-point/aval.git",
+    "commit": "96ec0fceaca31346c36b37aa4b2eadf17e066073",
+    "compilerVersion": "1.0.0"
+  },
+  "node": {
+    "version": "22.12.0"
+  },
+  "media": {
+    "archiveRelease": "aval-media-toolchain-v1",
+    "requiredEncoders": [
+      "libaom-av1",
+      "libvpx-vp9",
+      "libx265",
+      "libx264"
+    ],
+    "forbiddenConfigureFlags": [
+      "--enable-nonfree"
+    ]
+  }
+}

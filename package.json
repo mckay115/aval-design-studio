@@ -1,0 +1,52 @@
+{
+  "name": "aval-design-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A cross-platform visual authoring studio for AVAL interactive video assets.",
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "vitest run && node --test scripts/*.test.mjs && pnpm --dir sidecar test",
+    "test:watch": "vitest",
+    "check": "node scripts/check-versions.mjs && pnpm test && pnpm build",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "release:config": "node scripts/write-release-config.mjs",
+    "toolchain:archive": "node scripts/package-media-toolchain.mjs",
+    "toolchain:prepare": "node scripts/prepare-sidecars.mjs",
+    "toolchain:verify": "node scripts/verify-toolchain.mjs",
+    "sidecars:prepare": "pnpm toolchain:prepare"
+  },
+  "dependencies": {
+    "@mediabunny/prores": "1.50.8",
+    "@pixel-point/aval-graph": "workspace:1.0.0",
+    "@tauri-apps/api": "2.11.1",
+    "@tauri-apps/plugin-dialog": "2.7.1",
+    "@tauri-apps/plugin-process": "2.3.1",
+    "@tauri-apps/plugin-updater": "2.10.1",
+    "mediabunny": "1.50.8",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.4",
+    "@playwright/test": "1.61.1",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.1",
+    "@types/node": "26.1.1",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.3",
+    "jsdom": "29.1.1",
+    "typescript": "7.0.2",
+    "vite": "8.1.5",
+    "vitest": "4.1.10"
+  }
+}

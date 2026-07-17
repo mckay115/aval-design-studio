@@ -1,0 +1,16 @@
+{
+  "name": "@pixel-point/aval-graph",
+  "version": "1.0.0",
+  "description": "Vendored deterministic AVAL state graph runtime from the reviewed toolchain commit.",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "LICENSE", "README.md", "THIRD_PARTY_NOTICES.md"],
+  "license": "MIT"
+}

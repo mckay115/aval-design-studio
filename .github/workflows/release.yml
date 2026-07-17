@@ -1,0 +1,126 @@
+name: Release desktop app
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: ${{ matrix.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: macOS Apple Silicon
+            platform: macos-15
+            target: aarch64-apple-darwin
+          - label: macOS Intel
+            platform: macos-15-intel
+            target: x86_64-apple-darwin
+          - label: Linux x64
+            platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+          - label: Windows x64
+            platform: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Tauri Linux prerequisites
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build pinned official AVAL compiler
+        shell: bash
+        run: |
+          AVAL_REPOSITORY="$(node -p "JSON.parse(require('fs').readFileSync('toolchain/versions.json')).aval.repository")"
+          AVAL_COMMIT="$(node -p "JSON.parse(require('fs').readFileSync('toolchain/versions.json')).aval.commit")"
+          git clone --filter=blob:none "${AVAL_REPOSITORY}" .toolchain/aval-source
+          git -C .toolchain/aval-source checkout --detach "${AVAL_COMMIT}"
+          npm ci --ignore-scripts --prefix .toolchain/aval-source
+          npm run build:public-packages --prefix .toolchain/aval-source
+
+      - name: Download reviewed media sidecars
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          TOOLCHAIN_RELEASE="$(node -p "JSON.parse(require('fs').readFileSync('toolchain/versions.json')).media.archiveRelease")"
+          ARCHIVE="aval-media-toolchain-${TARGET}.tar.gz"
+          mkdir -p .toolchain/download ".toolchain/media/${TARGET}"
+          gh release download "${TOOLCHAIN_RELEASE}" --pattern "${ARCHIVE}" --pattern "${ARCHIVE}.sha256" --dir .toolchain/download
+          node scripts/verify-archive-sha256.mjs ".toolchain/download/${ARCHIVE}" ".toolchain/download/${ARCHIVE}.sha256"
+          tar -xzf ".toolchain/download/${ARCHIVE}" -C ".toolchain/media/${TARGET}"
+
+      - name: Prepare bundled executables
+        env:
+          AVAL_TARGET_TRIPLE: ${{ matrix.target }}
+        run: pnpm toolchain:prepare -- ${{ matrix.target }}
+
+      - name: Verify complete packaged toolchain
+        env:
+          AVAL_TARGET_TRIPLE: ${{ matrix.target }}
+        run: pnpm toolchain:verify -- ${{ matrix.target }}
+
+      - name: Generate signed release configuration
+        env:
+          TAURI_UPDATER_PUBLIC_KEY: ${{ secrets.TAURI_UPDATER_PUBLIC_KEY }}
+          AVAL_TARGET_TRIPLE: ${{ matrix.target }}
+        run: pnpm release:config
+
+      - name: Build and attach release artifacts
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          tagName: app-v__VERSION__
+          releaseName: Aval Design Studio v__VERSION__
+          releaseBody: Installers and signed in-app update artifacts for Aval Design Studio.
+          releaseDraft: true
+          prerelease: false
+          generateReleaseNotes: true
+          uploadUpdaterJson: true
+          uploadUpdaterSignatures: true
+          args: --target ${{ matrix.target }} --config src-tauri/tauri.release.conf.json
+
+      - name: Attach toolchain provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: toolchain-manifest-${{ matrix.target }}
+          path: src-tauri/toolchain-runtime/toolchain-manifest.json
+          if-no-files-found: error

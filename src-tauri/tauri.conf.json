@@ -1,0 +1,46 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Aval Design Studio",
+  "version": "0.1.0",
+  "identifier": "studio.aval.design",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Aval Design Studio",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 980,
+        "minHeight": 680,
+        "center": true,
+        "resizable": true,
+        "fullscreen": false,
+        "theme": "Dark"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost blob: data:; media-src 'self' asset: http://asset.localhost blob:; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost asset: http://asset.localhost https://github.com https://objects.githubusercontent.com",
+      "assetProtocol": {
+        "enable": true,
+        "scope": []
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": false,
+    "category": "DeveloperTool",
+    "shortDescription": "Visual authoring for AVAL interactive video assets",
+    "longDescription": "Import local video, define semantic segments and events, preview interactions, and compile portable AVAL assets.",
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    }
+  }
+}

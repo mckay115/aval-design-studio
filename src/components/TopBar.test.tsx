@@ -7,7 +7,7 @@ import { TopBar } from "./TopBar";
 
 afterEach(cleanup);
 
-function renderTopBar(onRename = vi.fn()) {
+function renderTopBar(onRename = vi.fn(), onOpenProject = vi.fn()) {
   render(
     <TopBar
       projectName="Original project"
@@ -15,6 +15,7 @@ function renderTopBar(onRename = vi.fn()) {
       saved
       canUndo={false}
       canRedo={false}
+      onOpenProject={onOpenProject}
       onImport={() => undefined}
       onRename={onRename}
       onSave={() => undefined}
@@ -23,12 +24,12 @@ function renderTopBar(onRename = vi.fn()) {
       onRedo={() => undefined}
     />
   );
-  return onRename;
+  return { onRename, onOpenProject };
 }
 
 describe("TopBar project name control", () => {
   it("opens from the filename chevron and commits a renamed project with Enter", () => {
-    const onRename = renderTopBar();
+    const { onRename } = renderTopBar();
     fireEvent.click(screen.getByRole("button", { name: "Original project" }));
 
     const input = screen.getByLabelText("Project name") as HTMLInputElement;
@@ -41,7 +42,7 @@ describe("TopBar project name control", () => {
   });
 
   it("cancels without changing the project when Escape is pressed", () => {
-    const onRename = renderTopBar();
+    const { onRename } = renderTopBar();
     fireEvent.click(screen.getByRole("button", { name: "Original project" }));
     const input = screen.getByLabelText("Project name");
     fireEvent.change(input, { target: { value: "Discard this" } });
@@ -52,7 +53,7 @@ describe("TopBar project name control", () => {
   });
 
   it("commits on click-away and prevents an empty project name", () => {
-    const onRename = renderTopBar();
+    const { onRename } = renderTopBar();
     fireEvent.click(screen.getByRole("button", { name: "Original project" }));
     const input = screen.getByLabelText("Project name") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "  Renamed on blur  " } });
@@ -63,5 +64,11 @@ describe("TopBar project name control", () => {
     const emptyInput = screen.getByLabelText("Project name");
     fireEvent.change(emptyInput, { target: { value: "   " } });
     expect((screen.getByRole("button", { name: "Rename" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("opens an existing project from the toolbar", () => {
+    const { onOpenProject } = renderTopBar();
+    fireEvent.click(screen.getByRole("button", { name: "Open Project" }));
+    expect(onOpenProject).toHaveBeenCalledOnce();
   });
 });

@@ -1,1 +1,1 @@
-{"main-capability":{"identifier":"main-capability","description":"Minimum desktop permissions for the Aval Design Studio main window.","local":true,"windows":["main"],"permissions":["core:default","dialog:allow-open","process:allow-restart","updater:default"]}}
+{"main-capability":{"identifier":"main-capability","description":"Minimum desktop permissions for the AVAL Design Studio main window.","local":true,"windows":["main"],"permissions":["core:default","dialog:allow-open","process:allow-restart","updater:default"]}}

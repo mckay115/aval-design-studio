@@ -57,6 +57,7 @@ export function Timeline({
   const scrubTargetRef = useRef<HTMLDivElement | null>(null);
   const resizeDragRef = useRef<ResizeDrag | null>(null);
   const resizePreviewEndRef = useRef(onResizePreviewEnd);
+  const [scrubFrame, setScrubFrame] = useState<number | null>(null);
   const [view, setView] = useState<"units" | "routes">("units");
   const [zoom, setZoom] = useState(100);
   const [scrubbing, setScrubbing] = useState(false);
@@ -73,8 +74,14 @@ export function Timeline({
 
   const seekOnSurface = useCallback((surface: HTMLDivElement, clientX: number): void => {
     const rect = surface.getBoundingClientRect();
-    onSeek(frameForClientX(clientX, rect.left, rect.width, totalFrames));
+    const frame = frameForClientX(clientX, rect.left, rect.width, totalFrames);
+    setScrubFrame(frame);
+    onSeek(frame);
   }, [onSeek, totalFrames]);
+
+  useEffect(() => {
+    if (!scrubbing && scrubFrame === currentFrame) setScrubFrame(null);
+  }, [currentFrame, scrubFrame, scrubbing]);
 
   const clearScrub = useCallback((): void => {
     scrubPointerRef.current = null;
@@ -118,6 +125,7 @@ export function Timeline({
   const cancelScrub = useCallback((event: React.PointerEvent<HTMLDivElement>): void => {
     if (scrubPointerRef.current !== event.pointerId) return;
     clearScrub();
+    setScrubFrame(null);
   }, [clearScrub]);
 
   const previewResizeFrame = useCallback((drag: ResizeDrag, frame: number): void => {
@@ -181,6 +189,7 @@ export function Timeline({
   }, [clearResize]);
 
   const markers = Array.from({ length: 9 }, (_, index) => Math.round(totalFrames * index / 8));
+  const displayedFrame = scrubFrame ?? currentFrame;
 
   return (
     <section className="timeline-panel" aria-label="Unit timeline">
@@ -234,7 +243,7 @@ export function Timeline({
         aria-label="Video playhead"
         aria-valuemin={0}
         aria-valuemax={Math.max(0, totalFrames - 1)}
-        aria-valuenow={currentFrame}
+        aria-valuenow={displayedFrame}
         tabIndex={0}
         onPointerDown={startScrub}
         onPointerMove={moveScrub}
@@ -254,7 +263,7 @@ export function Timeline({
             ? thumbnails.map((thumbnail, index) => <img key={index} src={thumbnail} alt="" draggable={false} />)
             : Array.from({ length: 14 }, (_, index) => <span key={index} />)}
         </div>
-        <div className="playhead" style={{ left: `${percent(currentFrame, totalFrames)}%` }} aria-hidden="true"><i /><b>{currentFrame}f</b></div>
+        <div className="playhead" style={{ left: `${percent(displayedFrame, totalFrames)}%` }} aria-hidden="true"><i /><b>{displayedFrame}f</b></div>
       </div>
 
       <div className="time-ruler" aria-hidden="true">

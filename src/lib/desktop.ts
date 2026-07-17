@@ -36,6 +36,13 @@ export interface CompileResult {
   readonly warnings: readonly string[];
 }
 
+export interface OpenedStudioProject {
+  readonly document: unknown;
+  readonly path: string | null;
+  readonly sourcePaths: readonly (string | null)[];
+  readonly missingSourcePaths: readonly string[];
+}
+
 export const ACCEPTED_VIDEO_EXTENSIONS = [
   "mp4",
   "m4v",
@@ -69,6 +76,21 @@ export function isTauriRuntime(): boolean {
 
 function fileName(path: string): string {
   return path.split(/[\\/]/u).at(-1) || "Untitled video";
+}
+
+export function isStudioProjectFileName(name: string): boolean {
+  const lower = name.toLowerCase();
+  return lower.endsWith(".avalstudio") || lower.endsWith(".avalstudio.json");
+}
+
+export function pickedVideoFromPath(path: string, preferredName?: string): PickedVideo {
+  return {
+    name: preferredName?.trim() || fileName(path),
+    path,
+    url: convertFileSrc(path),
+    file: null,
+    revokeUrl: null
+  };
 }
 
 async function pickBrowserVideo(): Promise<PickedVideo | null> {
@@ -127,6 +149,47 @@ export async function pickVideo(): Promise<PickedVideo | null> {
     file: null,
     revokeUrl: null
   };
+}
+
+async function openBrowserStudioProject(): Promise<OpenedStudioProject | null> {
+  return await new Promise((resolve, reject) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".avalstudio,.json,application/json";
+    input.hidden = true;
+    input.addEventListener("change", () => {
+      const file = input.files?.[0];
+      input.remove();
+      if (file === undefined) {
+        resolve(null);
+        return;
+      }
+      if (!isStudioProjectFileName(file.name)) {
+        reject(new Error(`${file.name} is not an AVAL Studio project. Choose an .avalstudio file.`));
+        return;
+      }
+      void file.text().then((contents) => {
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(contents) as unknown;
+        } catch {
+          throw new Error(`${file.name} does not contain valid Studio JSON.`);
+        }
+        resolve({ document: parsed, path: null, sourcePaths: [], missingSourcePaths: [] });
+      }).catch(reject);
+    }, { once: true });
+    input.addEventListener("cancel", () => {
+      input.remove();
+      resolve(null);
+    }, { once: true });
+    document.body.append(input);
+    input.click();
+  });
+}
+
+export async function openStudioProject(): Promise<OpenedStudioProject | null> {
+  if (!isTauriRuntime()) return await openBrowserStudioProject();
+  return await invoke<OpenedStudioProject | null>("open_studio_project");
 }
 
 export async function readBuildInfo(): Promise<BuildInfo> {

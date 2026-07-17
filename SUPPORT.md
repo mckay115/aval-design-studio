@@ -1,6 +1,6 @@
 # Support
 
-Aval Design Studio is a community-maintained technical preview.
+AVAL Design Studio is a community-maintained technical preview.
 
 - Search or open a [GitHub issue](https://github.com/mckay115/aval-design-studio/issues) for reproducible Studio bugs and focused feature requests.
 - Use the [upstream AVAL issue tracker](https://github.com/pixel-point/aval/issues) for the AVAL format, compiler, browser runtime, or element package.

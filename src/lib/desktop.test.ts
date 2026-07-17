@@ -14,7 +14,14 @@ vi.mock("@tauri-apps/api/core", () => ({
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: mocks.open }));
 
-import { ACCEPTED_VIDEO_EXTENSIONS, isAcceptedVideoFileName, pickVideo, saveStudioProject } from "./desktop";
+import {
+  ACCEPTED_VIDEO_EXTENSIONS,
+  isAcceptedVideoFileName,
+  isStudioProjectFileName,
+  openStudioProject,
+  pickVideo,
+  saveStudioProject
+} from "./desktop";
 
 describe("saveStudioProject", () => {
   beforeEach(() => {
@@ -62,5 +69,31 @@ describe("pickVideo", () => {
     expect(isAcceptedVideoFileName("render.WEBM")).toBe(true);
     expect(isAcceptedVideoFileName("render.avi")).toBe(false);
     expect(isAcceptedVideoFileName("render")).toBe(false);
+  });
+});
+
+describe("openStudioProject", () => {
+  beforeEach(() => {
+    mocks.invoke.mockReset();
+    (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ = {};
+  });
+
+  it("uses the native reader so source paths can be resolved safely", async () => {
+    const result = {
+      document: { studioVersion: 3 },
+      path: "/tmp/Motion.avalstudio",
+      sourcePaths: ["/tmp/source.mov"],
+      missingSourcePaths: []
+    };
+    mocks.invoke.mockResolvedValue(result);
+
+    await expect(openStudioProject()).resolves.toEqual(result);
+    expect(mocks.invoke).toHaveBeenCalledWith("open_studio_project");
+  });
+
+  it("recognizes current and legacy Studio filename suffixes only", () => {
+    expect(isStudioProjectFileName("Motion.avalstudio")).toBe(true);
+    expect(isStudioProjectFileName("Motion.avalstudio.json")).toBe(true);
+    expect(isStudioProjectFileName("Motion.json")).toBe(false);
   });
 });

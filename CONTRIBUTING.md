@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping build Aval Design Studio. Open an issue before a large behavior or format change so project migrations and cross-platform implications can be agreed first.
+Thanks for helping build AVAL Design Studio. Open an issue before a large behavior or format change so project migrations and cross-platform implications can be agreed first.
 
 ## Development
 

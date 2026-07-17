@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 
 const root = document.getElementById("root");
-if (root === null) throw new Error("Aval Design Studio root is missing");
+if (root === null) throw new Error("AVAL Design Studio root is missing");
 
 createRoot(root).render(
   <StrictMode>

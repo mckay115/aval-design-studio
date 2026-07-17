@@ -46,6 +46,15 @@ struct CompileResult {
     warnings: Vec<String>,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct OpenedStudioProject {
+    document: serde_json::Value,
+    path: String,
+    source_paths: Vec<Option<String>>,
+    missing_source_paths: Vec<String>,
+}
+
 #[derive(Deserialize)]
 struct CompilerAssetResult {
     path: String,
@@ -283,9 +292,9 @@ async fn save_studio_project(
         let selected = app
             .dialog()
             .file()
-            .set_title("Save Aval Studio project")
+            .set_title("Save AVAL Studio project")
             .set_file_name(safe_name)
-            .add_filter("Aval Studio project", &["avalstudio"])
+            .add_filter("AVAL Studio project", &["avalstudio"])
             .blocking_save_file();
         let Some(selected) = selected else {
             return Ok(None);
@@ -299,6 +308,89 @@ async fn save_studio_project(
     })
     .await
     .map_err(|error| format!("The native save task failed: {error}"))?
+}
+
+fn is_studio_project_path(path: &Path) -> bool {
+    path.file_name()
+        .and_then(|name| name.to_str())
+        .map(str::to_ascii_lowercase)
+        .is_some_and(|name| name.ends_with(".avalstudio") || name.ends_with(".avalstudio.json"))
+}
+
+#[tauri::command]
+async fn open_studio_project(app: tauri::AppHandle) -> Result<Option<OpenedStudioProject>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let selected = app
+            .dialog()
+            .file()
+            .set_title("Open AVAL Studio project")
+            .add_filter("AVAL Studio project", &["avalstudio", "json"])
+            .blocking_pick_file();
+        let Some(selected) = selected else {
+            return Ok(None);
+        };
+        let path = selected
+            .into_path()
+            .map_err(|error| format!("The selected project path is invalid: {error}"))?;
+        if !is_studio_project_path(&path) {
+            return Err("Choose an .avalstudio or .avalstudio.json project file.".to_owned());
+        }
+        let metadata = fs::metadata(&path)
+            .map_err(|error| format!("Could not inspect the Studio project: {error}"))?;
+        if metadata.len() > 16 * 1024 * 1024 {
+            return Err("The Studio project is larger than the 16 MB document limit.".to_owned());
+        }
+        let document: serde_json::Value = serde_json::from_slice(
+            &fs::read(&path)
+                .map_err(|error| format!("Could not read the Studio project: {error}"))?,
+        )
+        .map_err(|error| format!("The Studio project does not contain valid JSON: {error}"))?;
+
+        let project_directory = path.parent().unwrap_or_else(|| Path::new("."));
+        let source_paths = document
+            .get("sources")
+            .and_then(serde_json::Value::as_array)
+            .map(|sources| {
+                sources
+                    .iter()
+                    .map(|source| {
+                        let source_path = source.get("descriptor")?.get("path")?.as_str()?;
+                        let path = PathBuf::from(source_path);
+                        let resolved = if path.is_absolute() {
+                            path
+                        } else {
+                            project_directory.join(path)
+                        };
+                        Some(resolved.to_string_lossy().into_owned())
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        let missing_source_paths = source_paths
+            .iter()
+            .flatten()
+            .filter(|source_path| !Path::new(source_path).is_file())
+            .cloned()
+            .collect::<Vec<_>>();
+        for source_path in source_paths.iter().flatten() {
+            if Path::new(source_path).is_file() {
+                app.asset_protocol_scope()
+                    .allow_file(source_path)
+                    .map_err(|error| {
+                        format!("Could not authorize the project source for preview: {error}")
+                    })?;
+            }
+        }
+
+        Ok(Some(OpenedStudioProject {
+            document,
+            path: path.to_string_lossy().into_owned(),
+            source_paths,
+            missing_source_paths,
+        }))
+    })
+    .await
+    .map_err(|error| format!("The native open task failed: {error}"))?
 }
 
 fn safe_file_name(path: &Path) -> Result<String, String> {
@@ -541,9 +633,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             build_info,
             toolchain_health,
+            open_studio_project,
             save_studio_project,
             compile_bundle
         ])
         .run(tauri::generate_context!())
-        .expect("error while running Aval Design Studio");
+        .expect("error while running AVAL Design Studio");
 }

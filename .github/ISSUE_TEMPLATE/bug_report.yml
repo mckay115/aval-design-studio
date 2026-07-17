@@ -1,12 +1,12 @@
 name: Bug report
-description: Report a reproducible problem in Aval Design Studio.
+description: Report a reproducible problem in AVAL Design Studio.
 title: "[Bug]: "
 labels: [bug, triage]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping improve Aval Design Studio. Do not include private source media or security-sensitive details. Report vulnerabilities through GitHub Security Advisories instead.
+        Thanks for helping improve AVAL Design Studio. Do not include private source media or security-sensitive details. Report vulnerabilities through GitHub Security Advisories instead.
   - type: input
     id: version
     attributes:

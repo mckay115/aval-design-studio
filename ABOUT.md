@@ -1,4 +1,4 @@
-# About Aval Design Studio
+# About AVAL Design Studio
 
 > **Historical design record.** This document describes the initial 0.1.0 prototype and is retained for product history. The current MediaBunny playback, states-first editor, Source Prep, and AVAL compiler bridge are documented in [README.md](README.md) and the files under [docs/](docs/).
 
@@ -12,11 +12,11 @@
 >
 > License: MIT for the studio source; separately licensed media tools are not yet bundled
 
-![Aval Design Studio editor concept](docs/design/aval-design-studio-concept.png)
+![AVAL Design Studio editor concept](docs/design/aval-design-studio-concept.png)
 
 ## Executive summary
 
-Aval Design Studio is an open-source, cross-platform desktop authoring application for turning an ordinary local video into a structured interactive-video project intended to become an AVAL asset.
+AVAL Design Studio is an open-source, cross-platform desktop authoring application for turning an ordinary local video into a structured interactive-video project intended to become an AVAL asset.
 
 The core idea is that a video should not be treated only as one linear clip. A creator should be able to mark meaningful frame ranges—rest states, entries, loops, exits, bridges, one-shot actions, and arbitrary events—and describe how those ranges behave. The eventual output is intended to be a compiled `.avl` asset that can respond to product or interface events. The current milestone creates and saves the authoring project but does **not** yet compile the final `.avl` file.
 
@@ -54,7 +54,7 @@ Conventional trim controls define one start and one end. That is useful for cutt
 - a one-shot reaction;
 - custom regions associated with product-defined events.
 
-Aval Design Studio extends the familiar filmstrip-and-handles editing model to support any number of user-defined regions. The goal is to keep the first interaction understandable to someone who has used a native video trim control while making the underlying model expressive enough for an interactive asset pipeline.
+AVAL Design Studio extends the familiar filmstrip-and-handles editing model to support any number of user-defined regions. The goal is to keep the first interaction understandable to someone who has used a native video trim control while making the underlying model expressive enough for an interactive asset pipeline.
 
 ## What “AVAL” means in this repository
 
@@ -62,7 +62,7 @@ AVAL is the project and target-asset name used by the surrounding system. This r
 
 Three file/product concepts are distinct:
 
-- **Aval Design Studio** is the desktop authoring application.
+- **AVAL Design Studio** is the desktop authoring application.
 - **`.avalstudio`** is the editable, human-readable JSON project document currently produced by the application.
 - **`.avl`** is the intended compiled runtime asset. Compilation is not implemented in this milestone.
 
@@ -311,7 +311,7 @@ The Apple reference contributed these interaction ideas:
 - tactile start and end handles;
 - dark translucent surrounding surfaces.
 
-Aval Design Studio extends that language from one trim range to multiple semantic regions. It does not copy the one-range limitation or Apple’s exact component.
+AVAL Design Studio extends that language from one trim range to multiple semantic regions. It does not copy the one-range limitation or Apple’s exact component.
 
 The visual system uses:
 

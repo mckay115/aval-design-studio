@@ -2,6 +2,8 @@
 
 Studio saves UTF-8 `*.avalstudio` JSON documents with `studioVersion: 3`. A Studio document contains editor-only selection state and preparation recipes alongside AVAL-shaped sources, typed units, stable body states, authored routes, bindings, canvas, rational frame rate, alpha, and encoding preferences.
 
+Use **Open Project** in the top toolbar or the empty editor to restore a Studio v3 document. The desktop app resolves relative source paths from the project location and asks for the original video when it has moved. Browser builds always ask for the source video again because browsers cannot reopen a saved local path. Relinked media must preserve the authored dimensions, frame rate, and all frames referenced by the graph.
+
 In Studio v3, a state references a stable body unit. Entry, exit, one-shot, and reversible clips are typed units attached to routes or initial-state residency; they are not represented as temporary application states. Route start policies preserve AVAL portal, finish, and cut semantics explicitly.
 
 Frame ranges are always half-open `[startFrame, endFrame)`. Media URLs, MediaBunny objects, canvases, decoder state, and browser blob URLs are transient and are never serialized.

@@ -14,7 +14,7 @@ The editor uses [MediaBunny](https://mediabunny.dev/) for container inspection, 
 - [Latest desktop release](https://github.com/mckay115/aval-design-studio/releases/latest)
 - [Upstream AVAL format and runtime](https://pixelpoint.io/aval/)
 
-![Aval Design Studio editor](docs/design/aval-design-studio-concept.png)
+![AVAL Design Studio editor](docs/design/aval-design-studio-concept.png)
 
 ## Install the desktop app
 

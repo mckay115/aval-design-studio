@@ -8,6 +8,7 @@ interface TopBarProps {
   readonly saved: boolean;
   readonly canUndo: boolean;
   readonly canRedo: boolean;
+  readonly onOpenProject: () => void;
   readonly onImport: () => void;
   readonly onRename: (name: string) => void;
   readonly onSave: () => void;
@@ -22,6 +23,7 @@ export function TopBar({
   saved,
   canUndo,
   canRedo,
+  onOpenProject,
   onImport,
   onRename,
   onSave,
@@ -116,6 +118,9 @@ export function TopBar({
         {sourceReady ? (saved ? "Saved" : "Unsaved changes") : "Ready to import"}
       </div>
       <div className="top-actions">
+        <button className="button button-secondary" type="button" onClick={onOpenProject}>
+          <FolderIcon /> Open Project
+        </button>
         <button className="button button-secondary" type="button" onClick={onImport}>
           <FolderIcon /> Import Video
         </button>

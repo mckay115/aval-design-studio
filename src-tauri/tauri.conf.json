@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Aval Design Studio",
+  "productName": "AVAL Design Studio",
   "version": "0.1.0",
   "identifier": "studio.aval.design",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Aval Design Studio",
+        "title": "AVAL Design Studio",
         "width": 1440,
         "height": 900,
         "minWidth": 980,

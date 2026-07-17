@@ -1,6 +1,6 @@
 # Third-party notices
 
-Aval Design Studio is built with open-source JavaScript and Rust dependencies. Their license metadata is retained in the package and Cargo lockfiles and in the distributed application as required.
+AVAL Design Studio is built with open-source JavaScript and Rust dependencies. Their license metadata is retained in the package and Cargo lockfiles and in the distributed application as required.
 
 ## MediaBunny
 

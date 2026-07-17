@@ -11,6 +11,7 @@ import {
   validationItems,
   type MediaDescriptor
 } from "./studio";
+import { parseStudioProjectDocument } from "./studioDocument";
 
 const descriptor: MediaDescriptor = {
   name: "rabbit.webm",
@@ -97,5 +98,16 @@ describe("Studio project v3", () => {
 
   it("formats scrub time as frames within the current second", () => {
     expect(timecodeForFrame(53, { numerator: 30_000, denominator: 1_001 })).toBe("00:00:01:23");
+  });
+
+  it("opens a structurally valid Studio v3 project", () => {
+    const project = createStudioProject(descriptor);
+    expect(parseStudioProjectDocument(JSON.parse(JSON.stringify(project)) as unknown)).toEqual(project);
+  });
+
+  it("rejects unsupported versions and malformed project graphs", () => {
+    const project = createStudioProject(descriptor);
+    expect(() => parseStudioProjectDocument({ ...project, studioVersion: 2 })).toThrow("older projects need an explicit migration");
+    expect(() => parseStudioProjectDocument({ ...project, initialState: "missing" })).toThrow("initial state does not exist");
   });
 });

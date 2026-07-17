@@ -17,7 +17,10 @@ import { useUpdater } from "./hooks/useUpdater";
 import {
   chooseBundleDestination,
   compileAvalBundle,
+  isTauriRuntime,
+  openStudioProject,
   pickVideo,
+  pickedVideoFromPath,
   readBuildInfo,
   saveStudioProject,
   toolchainHealth,
@@ -46,6 +49,7 @@ import {
 import {
   bodyUnitForState,
   createStudioProject,
+  preparationPlanFor,
   selectedUnit as projectSelectedUnit,
   toAvalProject,
   updateUnit,
@@ -57,6 +61,7 @@ import {
   type StudioProjectV3,
   type StudioRoute
 } from "./model/studio";
+import { parseStudioProjectDocument } from "./model/studioDocument";
 import "./styles.css";
 
 const UNAVAILABLE_TOOLCHAIN: ToolchainHealth = {
@@ -74,6 +79,11 @@ function editableTarget(target: EventTarget | null): boolean {
 
 export default function App() {
   const selectionRef = useRef<PickedVideo | null>(null);
+  const pendingProjectOpenRef = useRef<{
+    readonly project: StudioProjectV3;
+    readonly picked: PickedVideo;
+    readonly fileName: string;
+  } | null>(null);
   const pendingStateRef = useRef<string | null>(null);
   const pendingEventRef = useRef<string | null>(null);
   const resizePreviewReturnFrameRef = useRef<number | null>(null);
@@ -125,8 +135,50 @@ export default function App() {
   }, [toast]);
 
   useEffect(() => {
-    if (media.descriptor === null || project !== null) return;
-    history.reset(createStudioProject(media.descriptor));
+    if (media.descriptor === null) return;
+    const pending = pendingProjectOpenRef.current;
+    if (pending === null) {
+      if (project === null) history.reset(createStudioProject(media.descriptor));
+      return;
+    }
+
+    const expected = pending.project.sources[0]?.descriptor;
+    const maximumAuthoredFrame = pending.project.units.reduce((maximum, unit) => Math.max(maximum, unit.range[1]), 0);
+    const expectedRate = expected === undefined ? 0 : expected.frameRate.numerator / expected.frameRate.denominator;
+    const actualRate = media.descriptor.frameRate.numerator / media.descriptor.frameRate.denominator;
+    if (expected === undefined
+      || media.descriptor.width !== expected.width
+      || media.descriptor.height !== expected.height
+      || media.descriptor.totalFrames < maximumAuthoredFrame
+      || Math.abs(actualRate - expectedRate) > 0.05) {
+      pendingProjectOpenRef.current = null;
+      selectionRef.current?.revokeUrl?.();
+      selectionRef.current = null;
+      setSelection(null);
+      history.reset(null);
+      setToast(`The selected source does not match this project. Expected ${expected?.width ?? "?"}×${expected?.height ?? "?"} at ${expectedRate.toFixed(2)} fps with at least ${String(maximumAuthoredFrame)} frames.`);
+      return;
+    }
+
+    const descriptor = {
+      ...media.descriptor,
+      name: pending.picked.name,
+      path: pending.picked.path
+    };
+    const linkedProject: StudioProjectV3 = {
+      ...pending.project,
+      sources: pending.project.sources.map((source, index) => index === 0
+        ? { ...source, descriptor, preparation: preparationPlanFor(descriptor) }
+        : source)
+    };
+    pendingProjectOpenRef.current = null;
+    try {
+      history.reset(requireValidProject(linkedProject));
+      setToast(`Opened ${pending.fileName} and relinked its source video`);
+    } catch (reason) {
+      history.reset(null);
+      setToast(reason instanceof Error ? reason.message : "The relinked project is invalid.");
+    }
   }, [history.reset, media.descriptor, project]);
 
   useEffect(() => {
@@ -148,6 +200,7 @@ export default function App() {
     try {
       const picked = await pickVideo();
       if (picked === null) return;
+      pendingProjectOpenRef.current = null;
       media.stop();
       selectionRef.current?.revokeUrl?.();
       selectionRef.current = picked;
@@ -158,6 +211,50 @@ export default function App() {
       setBuildResult(null);
     } catch (reason) {
       setToast(reason instanceof Error ? reason.message : "The video could not be opened.");
+    }
+  }, [history.reset, media.stop]);
+
+  const openProject = useCallback(async (): Promise<void> => {
+    try {
+      const opened = await openStudioProject();
+      if (opened === null) return;
+      const loaded = parseStudioProjectDocument(opened.document);
+      const source = loaded.sources[0];
+      if (source === undefined) throw new Error("The Studio project does not contain a source video.");
+      const sourcePath = opened.sourcePaths[0] ?? source.descriptor.path;
+      const sourceIsMissing = sourcePath === null || opened.missingSourcePaths.includes(sourcePath);
+      let picked: PickedVideo;
+      let relinking = false;
+      if (isTauriRuntime() && !sourceIsMissing && sourcePath !== null) {
+        picked = pickedVideoFromPath(sourcePath, source.descriptor.name);
+      } else {
+        setToast(sourceIsMissing
+          ? "Locate the source video used by this project."
+          : "Choose the source video to open this project in the browser.");
+        const replacement = await pickVideo();
+        if (replacement === null) return;
+        picked = replacement;
+        relinking = true;
+      }
+
+      const openedFileName = opened.path?.split(/[\\/]/u).at(-1) ?? `${loaded.name}.avalstudio`;
+      media.stop();
+      selectionRef.current?.revokeUrl?.();
+      selectionRef.current = picked;
+      setSelection(picked);
+      setDrawer(null);
+      setDialog(null);
+      setBuildResult(null);
+      if (relinking) {
+        pendingProjectOpenRef.current = { project: loaded, picked, fileName: openedFileName };
+        history.reset(null);
+      } else {
+        pendingProjectOpenRef.current = null;
+        history.reset(loaded, true);
+        setToast(`Opened ${openedFileName}`);
+      }
+    } catch (reason) {
+      setToast(reason instanceof Error ? reason.message : "The Studio project could not be opened.");
     }
   }, [history.reset, media.stop]);
 
@@ -370,7 +467,7 @@ export default function App() {
 
   return (
     <div className={`app-shell${drawerVisible ? " has-drawer" : ""}`}>
-      <TopBar projectName={project?.name ?? null} sourceReady={project !== null} saved={history.saved} canUndo={history.canUndo} canRedo={history.canRedo} onImport={() => void openVideo()} onRename={renameProject} onSave={() => void saveProject()} onBuild={() => setDrawer("build")} onUndo={history.undo} onRedo={history.redo} />
+      <TopBar projectName={project?.name ?? null} sourceReady={project !== null} saved={history.saved} canUndo={history.canUndo} canRedo={history.canRedo} onOpenProject={() => void openProject()} onImport={() => void openVideo()} onRename={renameProject} onSave={() => void saveProject()} onBuild={() => setDrawer("build")} onUndo={history.undo} onRedo={history.redo} />
 
       {project === null ? (
         <main className="editor-empty">
@@ -378,7 +475,10 @@ export default function App() {
           <h1>{media.status === "probing" ? "Reading your source…" : "Build an interactive video"}</h1>
           <p>{media.status === "probing" ? "MediaBunny is detecting the container, codec, timing, color, and alpha capabilities." : "Import any local video the desktop toolchain can decode. Define states, preview interactions, then build an efficient AVAL bundle."}</p>
           {media.error === null ? null : <div className="empty-error">{media.error}</div>}
-          <button className="button button-primary" type="button" disabled={media.status === "probing"} onClick={() => void openVideo()}>Import Video</button>
+          <div className="empty-actions">
+            <button className="button button-secondary" type="button" disabled={media.status === "probing"} onClick={() => void openProject()}>Open Project</button>
+            <button className="button button-primary" type="button" disabled={media.status === "probing"} onClick={() => void openVideo()}>Import Video</button>
+          </div>
           <ol><li><b>1</b><span>Import and prepare</span></li><li><b>2</b><span>Define states</span></li><li><b>3</b><span>Build bundle</span></li></ol>
         </main>
       ) : (

@@ -17,7 +17,7 @@ export interface ProjectHistory {
   readonly canUndo: boolean;
   readonly canRedo: boolean;
   readonly saved: boolean;
-  readonly reset: (project: StudioProjectV3 | null) => void;
+  readonly reset: (project: StudioProjectV3 | null, saved?: boolean) => void;
   readonly commit: (update: (project: StudioProjectV3) => StudioProjectV3) => void;
   readonly replaceTransient: (update: (project: StudioProjectV3) => StudioProjectV3) => void;
   readonly undo: () => void;
@@ -28,8 +28,8 @@ export interface ProjectHistory {
 export function useProjectHistory(): ProjectHistory {
   const [state, setState] = useState<HistoryState>({ past: [], present: null, future: [], revision: 0, savedRevision: null });
 
-  const reset = useCallback((project: StudioProjectV3 | null): void => {
-    setState({ past: [], present: project, future: [], revision: 0, savedRevision: null });
+  const reset = useCallback((project: StudioProjectV3 | null, saved = false): void => {
+    setState({ past: [], present: project, future: [], revision: 0, savedRevision: saved && project !== null ? 0 : null });
   }, []);
 
   const commit = useCallback((update: (project: StudioProjectV3) => StudioProjectV3): void => {

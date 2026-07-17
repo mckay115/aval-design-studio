@@ -108,7 +108,7 @@ export function useGraphPreview(
   const operate = useCallback((operation: (engine: MotionGraphEngine) => ReturnType<MotionGraphEngine["tick"]>): void => {
     const engine = engineRef.current;
     if (engine === null) {
-      setError("Turn on Test interactions to run this graph.");
+      setError("Turn on Test lifecycle to run this graph.");
       return;
     }
     try {
@@ -116,7 +116,7 @@ export function useGraphPreview(
       publish(result.presentation, result.snapshot);
       setError(null);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "The interaction was rejected.");
+      setError(reason instanceof Error ? reason.message : "The lifecycle event was rejected.");
     }
   }, [publish]);
 

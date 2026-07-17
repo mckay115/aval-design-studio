@@ -1,7 +1,6 @@
 import { MotionGraphError } from "./errors.js";
 import type {
   GraphEdgeDefinition,
-  GraphPresentation,
   GraphStateId,
   MotionGraphDefinition,
   MotionGraphDisposeOptions,

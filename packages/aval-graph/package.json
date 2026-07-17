@@ -7,10 +7,10 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
     }
   },
-  "files": ["dist", "src", "LICENSE", "README.md", "THIRD_PARTY_NOTICES.md"],
+  "files": ["src", "LICENSE", "README.md", "THIRD_PARTY_NOTICES.md"],
   "license": "MIT"
 }

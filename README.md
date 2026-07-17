@@ -1,7 +1,7 @@
 # AVAL Design Studio
 
 [![CI](https://github.com/mckay115/aval-design-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/mckay115/aval-design-studio/actions/workflows/ci.yml)
-[![About site](https://github.com/mckay115/aval-design-studio/actions/workflows/pages.yml/badge.svg)](https://mckay115.github.io/aval-design-studio/)
+[![About site](https://github.com/mckay115/aval-design-studio/actions/workflows/pages.yml/badge.svg)](https://www.zachlisko.com/aval-design-studio/)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-fcc51b.svg)](LICENSE)
 
 AVAL Design Studio is a local-first Tauri and React editor for turning source video into state-driven [AVAL](https://github.com/pixel-point/aval) 1.0 bundles.
@@ -10,7 +10,7 @@ The editor uses [MediaBunny](https://mediabunny.dev/) for container inspection, 
 
 **Technical preview:** the project is pre-1.0. The document format, authoring workflow, and release packaging are expected to evolve with real-world feedback.
 
-- [About and downloads](https://mckay115.github.io/aval-design-studio/)
+- [About and downloads](https://www.zachlisko.com/aval-design-studio/)
 - [Latest desktop release](https://github.com/mckay115/aval-design-studio/releases/latest)
 - [Upstream AVAL format and runtime](https://pixelpoint.io/aval/)
 

@@ -7,13 +7,30 @@ const workflow = await readFile(
   "utf8"
 );
 
-test("a missing release follows the create path instead of looking published", () => {
+test("release lookup includes drafts and avoids the published-only tag endpoint", () => {
   assert.match(
     workflow,
-    /if RELEASE_JSON="\$\(gh api "repos\/\$\{GITHUB_REPOSITORY\}\/releases\/tags\/\$\{TAG\}" 2>\/dev\/null\)"; then/u
+    /gh api --paginate "repos\/\$\{GITHUB_REPOSITORY\}\/releases\?per_page=100"/u
   );
+  assert.match(workflow, /select\(\.tag_name == \$tag\)/u);
   assert.doesNotMatch(
     workflow,
-    /releases\/tags\/\$\{TAG\}" 2>\/dev\/null \|\| true/u
+    /releases\/tags\/\$\{TAG\}/u
   );
+});
+
+test("draft source pinning uses target_commitish before the tag exists", () => {
+  assert.match(
+    workflow,
+    /RELEASE_TARGET="\$\(jq -r '\.target_commitish' <<< "\$\{RELEASE_JSON\}"\)"/u
+  );
+  assert.doesNotMatch(workflow, /commits\/\$\{TAG\}/u);
+});
+
+test("finalization resolves the draft by numeric release ID", () => {
+  assert.match(
+    workflow,
+    /releases\/\$\{RELEASE_ID\}/u
+  );
+  assert.doesNotMatch(workflow, /releases\/tags\/\$\{TAG\}/u);
 });

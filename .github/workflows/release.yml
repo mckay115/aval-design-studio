@@ -85,7 +85,16 @@ jobs:
         id: release
         shell: bash
         run: |
-          if RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" 2>/dev/null)"; then
+          RELEASE_MATCHES="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
+              | jq -sc --arg tag "${TAG}" '[.[][] | select(.tag_name == $tag)]'
+          )"
+          RELEASE_COUNT="$(jq 'length' <<< "${RELEASE_MATCHES}")"
+          if [[ "${RELEASE_COUNT}" -gt 1 ]]; then
+            echo "Found ${RELEASE_COUNT} releases for ${TAG}; refusing to choose between duplicates." >&2
+            exit 1
+          elif [[ "${RELEASE_COUNT}" -eq 1 ]]; then
+            RELEASE_JSON="$(jq -c '.[0]' <<< "${RELEASE_MATCHES}")"
             if [[ "$(jq -r '.draft' <<< "${RELEASE_JSON}")" != "true" ]]; then
               echo "Release ${TAG} already exists and is published; refusing to replace it." >&2
               exit 1
@@ -102,9 +111,9 @@ jobs:
               -F generate_release_notes=true)"
             RELEASE_ID="$(jq -r '.id' <<< "${RELEASE_JSON}")"
           fi
-          TAG_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${TAG}" --jq '.sha')"
-          if [[ "${TAG_SHA}" != "${SOURCE_SHA}" ]]; then
-            echo "Release tag ${TAG} points to ${TAG_SHA}; expected validated commit ${SOURCE_SHA}." >&2
+          RELEASE_TARGET="$(jq -r '.target_commitish' <<< "${RELEASE_JSON}")"
+          if [[ "${RELEASE_TARGET}" != "${SOURCE_SHA}" ]]; then
+            echo "Release ${TAG} targets ${RELEASE_TARGET}; expected validated commit ${SOURCE_SHA}." >&2
             exit 1
           fi
           if [[ ! "${RELEASE_ID}" =~ ^[0-9]+$ ]]; then
@@ -241,6 +250,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       VERSION: ${{ needs.validate.outputs.version }}
       TAG: ${{ needs.validate.outputs.tag }}
+      SOURCE_SHA: ${{ needs.validate.outputs.source-sha }}
       RELEASE_ID: ${{ needs.create-release.outputs.release-id }}
     steps:
       - uses: actions/checkout@v7
@@ -254,9 +264,11 @@ jobs:
       - name: Attach provenance and checksums
         shell: bash
         run: |
-          ACTUAL_RELEASE_ID="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id')"
-          if [[ "${ACTUAL_RELEASE_ID}" != "${RELEASE_ID}" ]]; then
-            echo "Release ID changed from ${RELEASE_ID} to ${ACTUAL_RELEASE_ID}." >&2
+          RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}")"
+          ACTUAL_TAG="$(jq -r '.tag_name' <<< "${RELEASE_JSON}")"
+          ACTUAL_TARGET="$(jq -r '.target_commitish' <<< "${RELEASE_JSON}")"
+          if [[ "${ACTUAL_TAG}" != "${TAG}" || "${ACTUAL_TARGET}" != "${SOURCE_SHA}" ]]; then
+            echo "Release ${RELEASE_ID} no longer matches ${TAG} at ${SOURCE_SHA}." >&2
             exit 1
           fi
           mkdir -p release-assets

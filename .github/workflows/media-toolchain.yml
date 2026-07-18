@@ -1,0 +1,162 @@
+name: Publish reviewed media toolchain
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: media-toolchain-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Validate ${{ matrix.label }} media
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: macOS Apple Silicon
+            platform: macos-15
+            target: aarch64-apple-darwin
+          - label: macOS Intel
+            platform: macos-15-intel
+            target: x86_64-apple-darwin
+          - label: Linux x64
+            platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+          - label: Windows x64
+            platform: windows-latest
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.12.0
+
+      - name: Download, hash, and execute reviewed binaries
+        run: node scripts/fetch-media-toolchain.mjs ${{ matrix.target }}
+
+      - name: Revalidate and package the native archive
+        run: node scripts/package-media-toolchain.mjs ${{ matrix.target }}
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: media-toolchain-${{ matrix.target }}
+          path: .toolchain/release/*
+          if-no-files-found: error
+
+  source-offer:
+    name: Collect source offer
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.12.0
+
+      - name: Download and verify corresponding sources
+        run: node scripts/collect-media-source-offer.mjs
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: media-source-offer
+          path: .toolchain/source-offer/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish immutable media prerelease
+    needs:
+      - package
+      - source-offer
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: media-toolchain-*
+          path: release-assets
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: media-source-offer
+          path: source-offer
+
+      - name: Verify the complete release set
+        shell: bash
+        run: |
+          TAG="$(node -p "JSON.parse(require('fs').readFileSync('toolchain/media-sources.json')).release")"
+          for target in \
+            aarch64-apple-darwin \
+            x86_64-apple-darwin \
+            x86_64-unknown-linux-gnu \
+            x86_64-pc-windows-msvc
+          do
+            archive="release-assets/aval-media-toolchain-${target}.tar.gz"
+            node scripts/verify-archive-sha256.mjs "${archive}" "${archive}.sha256"
+          done
+          cp source-offer/* release-assets/
+          cp toolchain/media-sources.json release-assets/media-sources.json
+          echo "MEDIA_TAG=${TAG}" >> "${GITHUB_ENV}"
+
+      - name: Create or resume the coordinated prerelease
+        id: release
+        shell: bash
+        run: |
+          matches="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
+              | jq -sc --arg tag "${MEDIA_TAG}" '[.[][] | select(.tag_name == $tag)]'
+          )"
+          count="$(jq 'length' <<< "${matches}")"
+          if [[ "${count}" -gt 1 ]]; then
+            echo "Found duplicate releases for ${MEDIA_TAG}." >&2
+            exit 1
+          elif [[ "${count}" -eq 1 ]]; then
+            release="$(jq -c '.[0]' <<< "${matches}")"
+            if [[ "$(jq -r '.draft' <<< "${release}")" != "true" ]]; then
+              echo "${MEDIA_TAG} is already published and immutable." >&2
+              exit 1
+            fi
+            release_id="$(jq -r '.id' <<< "${release}")"
+          else
+            release="$(gh api --method POST "repos/${GITHUB_REPOSITORY}/releases" \
+              -F "tag_name=${MEDIA_TAG}" \
+              -F "target_commitish=${GITHUB_SHA}" \
+              -F "name=AVAL reviewed media toolchain v1" \
+              -f "body=GPL-enabled FFmpeg and FFprobe sidecars for AVAL Design Studio. Every binary is pinned, checksum-verified, executed on its native target, and published with source/build records." \
+              -F draft=true \
+              -F prerelease=true)"
+            release_id="$(jq -r '.id' <<< "${release}")"
+          fi
+          target="$(jq -r '.target_commitish' <<< "${release}")"
+          if [[ "${target}" != "${GITHUB_SHA}" ]]; then
+            echo "${MEDIA_TAG} targets ${target}; expected ${GITHUB_SHA}." >&2
+            exit 1
+          fi
+          echo "release-id=${release_id}" >> "${GITHUB_OUTPUT}"
+
+      - name: Attach binaries, checksums, licenses, and sources
+        shell: bash
+        env:
+          RELEASE_ID: ${{ steps.release.outputs.release-id }}
+        run: node scripts/upload-release-assets.mjs "${RELEASE_ID}" release-assets/*
+
+      - name: Publish without replacing the desktop update feed
+        shell: bash
+        env:
+          RELEASE_ID: ${{ steps.release.outputs.release-id }}
+        run: |
+          gh api --method PATCH "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
+            -F draft=false \
+            -F prerelease=true \
+            -f make_latest=false >/dev/null

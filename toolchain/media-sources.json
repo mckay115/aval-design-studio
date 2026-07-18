@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "release": "aval-media-toolchain-v1",
+  "license": {
+    "url": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/n8.1.2/COPYING.GPLv3",
+    "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+  },
+  "targets": {
+    "aarch64-apple-darwin": {
+      "provider": "Martin Riedl's FFmpeg Build Server",
+      "providerUrl": "https://ffmpeg.martin-riedl.de/",
+      "publishedAt": "2026-07-02T18:58:00+02:00",
+      "builderRevision": "bb1d6db29cee948f9685bcd69e6caf17d960662b",
+      "buildInstructionsUrl": "https://git.martin-riedl.de/ffmpeg/build-script/src/commit/bb1d6db29cee948f9685bcd69e6caf17d960662b/README.md",
+      "source": {
+        "url": "https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz",
+        "sha256": "464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c"
+      },
+      "files": [
+        {
+          "output": "ffmpeg",
+          "url": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1783011502_8.1.2/ffmpeg.zip",
+          "sha256": "ef1aa60006c7b77ce170c1608c08d8e4ba1c30c5746f2ac986ded932d0ac2c3c",
+          "member": "ffmpeg"
+        },
+        {
+          "output": "ffprobe",
+          "url": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1783011502_8.1.2/ffprobe.zip",
+          "sha256": "c39787f4af7a3932502d2d48db6f6feaaa836b48a73ef78c32cc3285df61dfaf",
+          "member": "ffprobe"
+        }
+      ]
+    },
+    "x86_64-apple-darwin": {
+      "provider": "Martin Riedl's FFmpeg Build Server",
+      "providerUrl": "https://ffmpeg.martin-riedl.de/",
+      "publishedAt": "2026-07-02T20:52:00+02:00",
+      "builderRevision": "bb1d6db29cee948f9685bcd69e6caf17d960662b",
+      "buildInstructionsUrl": "https://git.martin-riedl.de/ffmpeg/build-script/src/commit/bb1d6db29cee948f9685bcd69e6caf17d960662b/README.md",
+      "source": {
+        "url": "https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz",
+        "sha256": "464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c"
+      },
+      "files": [
+        {
+          "output": "ffmpeg",
+          "url": "https://ffmpeg.martin-riedl.de/download/macos/amd64/1783018342_8.1.2/ffmpeg.zip",
+          "sha256": "a52ef43883f44c219766d4b3bdde4e635b35465d0b704c01c3a0566b59775df9",
+          "member": "ffmpeg"
+        },
+        {
+          "output": "ffprobe",
+          "url": "https://ffmpeg.martin-riedl.de/download/macos/amd64/1783018342_8.1.2/ffprobe.zip",
+          "sha256": "5408ca588c8c72b0dde3afe676d0a7acf25ef97e55ae6eba5c7bede1cda42695",
+          "member": "ffprobe"
+        }
+      ]
+    },
+    "x86_64-unknown-linux-gnu": {
+      "provider": "BtbN FFmpeg Builds",
+      "providerUrl": "https://github.com/BtbN/FFmpeg-Builds",
+      "publishedAt": "2026-07-17T14:10:03Z",
+      "builderRevision": "1f74efed63f467dbf0d1e5dd8548bf2188f4ad21",
+      "buildInstructionsUrl": "https://github.com/BtbN/FFmpeg-Builds/tree/1f74efed63f467dbf0d1e5dd8548bf2188f4ad21",
+      "source": {
+        "url": "https://github.com/FFmpeg/FFmpeg/archive/94138f6973dd1ac6208ace92148ac0d172455d65.tar.gz",
+        "sha256": "41cc834ca4c8b63733b5ea9d215aed7b6cf8e29c4f96c8c61aff187d47e02937"
+      },
+      "files": [
+        {
+          "output": "ffmpeg",
+          "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-07-17-13-22/ffmpeg-n8.1.2-22-g94138f6973-linux64-gpl-8.1.tar.xz",
+          "sha256": "ca1b5eb366743fc44a415e1496dd39a8b3266d99d786bd3eb8cbd837452e306e",
+          "member": "ffmpeg-n8.1.2-22-g94138f6973-linux64-gpl-8.1/bin/ffmpeg"
+        },
+        {
+          "output": "ffprobe",
+          "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-07-17-13-22/ffmpeg-n8.1.2-22-g94138f6973-linux64-gpl-8.1.tar.xz",
+          "sha256": "ca1b5eb366743fc44a415e1496dd39a8b3266d99d786bd3eb8cbd837452e306e",
+          "member": "ffmpeg-n8.1.2-22-g94138f6973-linux64-gpl-8.1/bin/ffprobe"
+        },
+        {
+          "output": "LICENSE",
+          "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-07-17-13-22/ffmpeg-n8.1.2-22-g94138f6973-linux64-gpl-8.1.tar.xz",
+          "sha256": "ca1b5eb366743fc44a415e1496dd39a8b3266d99d786bd3eb8cbd837452e306e",
+          "member": "ffmpeg-n8.1.2-22-g94138f6973-linux64-gpl-8.1/LICENSE.txt"
+        }
+      ]
+    },
+    "x86_64-pc-windows-msvc": {
+      "provider": "BtbN FFmpeg Builds",
+      "providerUrl": "https://github.com/BtbN/FFmpeg-Builds",
+      "publishedAt": "2026-07-17T14:10:03Z",
+      "builderRevision": "1f74efed63f467dbf0d1e5dd8548bf2188f4ad21",
+      "buildInstructionsUrl": "https://github.com/BtbN/FFmpeg-Builds/tree/1f74efed63f467dbf0d1e5dd8548bf2188f4ad21",
+      "source": {
+        "url": "https://github.com/FFmpeg/FFmpeg/archive/94138f6973dd1ac6208ace92148ac0d172455d65.tar.gz",
+        "sha256": "41cc834ca4c8b63733b5ea9d215aed7b6cf8e29c4f96c8c61aff187d47e02937"
+      },
+      "files": [
+        {
+          "output": "ffmpeg.exe",
+          "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-07-17-13-22/ffmpeg-n8.1.2-22-g94138f6973-win64-gpl-8.1.zip",
+          "sha256": "3a6b700bf8fbcbc5fb48dd68cebcc41253196c00568410e1d492cd9c45f1589c",
+          "member": "ffmpeg-n8.1.2-22-g94138f6973-win64-gpl-8.1/bin/ffmpeg.exe"
+        },
+        {
+          "output": "ffprobe.exe",
+          "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-07-17-13-22/ffmpeg-n8.1.2-22-g94138f6973-win64-gpl-8.1.zip",
+          "sha256": "3a6b700bf8fbcbc5fb48dd68cebcc41253196c00568410e1d492cd9c45f1589c",
+          "member": "ffmpeg-n8.1.2-22-g94138f6973-win64-gpl-8.1/bin/ffprobe.exe"
+        },
+        {
+          "output": "LICENSE",
+          "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-07-17-13-22/ffmpeg-n8.1.2-22-g94138f6973-win64-gpl-8.1.zip",
+          "sha256": "3a6b700bf8fbcbc5fb48dd68cebcc41253196c00568410e1d492cd9c45f1589c",
+          "member": "ffmpeg-n8.1.2-22-g94138f6973-win64-gpl-8.1/LICENSE.txt"
+        }
+      ]
+    }
+  },
+  "sourceOffer": [
+    {
+      "fileName": "ffmpeg-8.1.2.tar.xz",
+      "url": "https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz",
+      "sha256": "464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c"
+    },
+    {
+      "fileName": "ffmpeg-94138f6973dd1ac6208ace92148ac0d172455d65.tar.gz",
+      "url": "https://github.com/FFmpeg/FFmpeg/archive/94138f6973dd1ac6208ace92148ac0d172455d65.tar.gz",
+      "sha256": "41cc834ca4c8b63733b5ea9d215aed7b6cf8e29c4f96c8c61aff187d47e02937"
+    },
+    {
+      "fileName": "martin-riedl-ffmpeg-build-script-bb1d6db29cee948f9685bcd69e6caf17d960662b.tar.gz",
+      "url": "https://git.martin-riedl.de/ffmpeg/build-script/archive/bb1d6db29cee948f9685bcd69e6caf17d960662b.tar.gz",
+      "sha256": "b4bcb3aa69bb16304a5b69c62837ec01c167909136afe477df452e8c178e0d5f"
+    },
+    {
+      "fileName": "btbn-ffmpeg-builds-1f74efed63f467dbf0d1e5dd8548bf2188f4ad21.tar.gz",
+      "url": "https://github.com/BtbN/FFmpeg-Builds/archive/1f74efed63f467dbf0d1e5dd8548bf2188f4ad21.tar.gz",
+      "sha256": "e200edd62d06f371577df3676db2c7bf336f02400f08134d3bfbcb8d1eefc51d"
+    }
+  ]
+}

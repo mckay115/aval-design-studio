@@ -142,7 +142,7 @@ export async function assertFile(path, label) {
   }
 }
 
-export function validateMediaProvenance(provenance, observed, target) {
+export function validateMediaProvenance(provenance, observed, target, binaryHashes) {
   if (provenance?.schemaVersion !== 1 || provenance?.target !== target) {
     throw new Error("Media SOURCE.json must use schemaVersion 1 and match the requested target.");
   }
@@ -155,5 +155,39 @@ export function validateMediaProvenance(provenance, observed, target) {
   }
   if (!/^https:\/\//u.test(media.buildInstructionsUrl ?? "")) {
     throw new Error("Media SOURCE.json must link to reproducible build instructions.");
+  }
+  if (
+    !/^https:\/\//u.test(media.license?.url ?? "") ||
+    !/^[a-f0-9]{64}$/u.test(media.license?.sha256 ?? "")
+  ) {
+    throw new Error("Media SOURCE.json must identify its license text and hash.");
+  }
+  const distribution = media.binaryDistribution;
+  if (
+    typeof distribution?.provider !== "string" ||
+    !/^https:\/\//u.test(distribution?.providerUrl ?? "") ||
+    !/^[a-f0-9]{40}$/u.test(distribution?.builderRevision ?? "") ||
+    !Array.isArray(distribution?.archives) ||
+    distribution.archives.length === 0 ||
+    distribution.archives.some(
+      (archive) =>
+        !/^https:\/\//u.test(archive?.url ?? "") ||
+        !/^[a-f0-9]{64}$/u.test(archive?.sha256 ?? "")
+    )
+  ) {
+    throw new Error("Media SOURCE.json must identify the pinned binary distribution and builder.");
+  }
+  if (
+    !/^[a-f0-9]{64}$/u.test(media.binaries?.ffmpegSha256 ?? "") ||
+    !/^[a-f0-9]{64}$/u.test(media.binaries?.ffprobeSha256 ?? "")
+  ) {
+    throw new Error("Media SOURCE.json must contain FFmpeg and FFprobe hashes.");
+  }
+  if (
+    binaryHashes !== undefined &&
+    (media.binaries.ffmpegSha256 !== binaryHashes.ffmpegSha256 ||
+      media.binaries.ffprobeSha256 !== binaryHashes.ffprobeSha256)
+  ) {
+    throw new Error("Media SOURCE.json binary hashes do not match the packaged executables.");
   }
 }

@@ -40,7 +40,7 @@
     "shortDescription": "Visual authoring for AVAL interactive video assets",
     "longDescription": "Import local video, define semantic segments and events, preview interactions, and compile portable AVAL assets.",
     "macOS": {
-      "minimumSystemVersion": "11.0"
+      "minimumSystemVersion": "12.3"
     }
   }
 }

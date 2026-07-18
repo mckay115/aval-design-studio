@@ -6,6 +6,10 @@ const workflow = await readFile(
   new URL("../.github/workflows/release.yml", import.meta.url),
   "utf8"
 );
+const mediaWorkflow = await readFile(
+  new URL("../.github/workflows/media-toolchain.yml", import.meta.url),
+  "utf8"
+);
 
 test("release lookup includes drafts and avoids the published-only tag endpoint", () => {
   assert.match(
@@ -33,4 +37,27 @@ test("finalization resolves the draft by numeric release ID", () => {
     /releases\/\$\{RELEASE_ID\}/u
   );
   assert.doesNotMatch(workflow, /releases\/tags\/\$\{TAG\}/u);
+  assert.match(workflow, /upload-release-assets\.mjs "\$\{RELEASE_ID\}"/u);
+  assert.match(workflow, /download-release-assets\.mjs "\$\{RELEASE_ID\}"/u);
+  assert.doesNotMatch(workflow, /gh release (?:upload|download) "\$\{TAG\}"/u);
+  assert.match(workflow, /releases\/\$\{RELEASE_ID\}[\s\S]*make_latest=true/u);
+});
+
+test("media toolchain is natively validated for every desktop target", () => {
+  for (const target of [
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+    "x86_64-unknown-linux-gnu",
+    "x86_64-pc-windows-msvc"
+  ]) {
+    assert.match(mediaWorkflow, new RegExp(target, "u"));
+  }
+  assert.match(mediaWorkflow, /fetch-media-toolchain\.mjs \$\{\{ matrix\.target \}\}/u);
+  assert.match(mediaWorkflow, /package-media-toolchain\.mjs \$\{\{ matrix\.target \}\}/u);
+});
+
+test("media toolchain stays a prerelease and cannot replace latest desktop updates", () => {
+  assert.match(mediaWorkflow, /-F prerelease=true/u);
+  assert.match(mediaWorkflow, /-f make_latest=false/u);
+  assert.match(mediaWorkflow, /already published and immutable/u);
 });

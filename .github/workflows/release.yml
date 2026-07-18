@@ -276,17 +276,19 @@ jobs:
             target="${directory#provenance/toolchain-manifest-}"
             cp "${directory}/toolchain-manifest.json" "release-assets/toolchain-manifest-${target}.json"
           done
-          gh release upload "${TAG}" release-assets/toolchain-manifest-*.json --clobber
-          rm -f release-assets/toolchain-manifest-*.json
-          gh release download "${TAG}" --dir release-assets
+          node scripts/upload-release-assets.mjs "${RELEASE_ID}" release-assets/toolchain-manifest-*.json
+          node scripts/download-release-assets.mjs "${RELEASE_ID}" release-assets
           pnpm release:verify-assets -- release-assets "${VERSION}"
           find release-assets -maxdepth 1 -type f ! -name SHA256SUMS -print0 \
             | sort -z \
             | xargs -0 shasum -a 256 \
             | sed 's#  release-assets/#  #' > release-assets/SHA256SUMS
-          gh release upload "${TAG}" release-assets/SHA256SUMS --clobber
+          node scripts/upload-release-assets.mjs "${RELEASE_ID}" release-assets/SHA256SUMS
 
       - name: Publish release for desktop updates
         shell: bash
         run: |
-          gh release edit "${TAG}" --draft=false --latest
+          gh api --method PATCH "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
+            -F draft=false \
+            -F prerelease=false \
+            -f make_latest=true >/dev/null

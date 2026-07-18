@@ -37,6 +37,10 @@ test("rejects non-redistributable and incomplete FFmpeg builds", () => {
 
 test("requires exact source provenance for the observed media binary", () => {
   const observed = validateFfmpeg(versionText, encoders);
+  const hashes = {
+    ffmpegSha256: "b".repeat(64),
+    ffprobeSha256: "c".repeat(64)
+  };
   assert.doesNotThrow(() => validateMediaProvenance({
     schemaVersion: 1,
     target: "aarch64-apple-darwin",
@@ -45,8 +49,22 @@ test("requires exact source provenance for the observed media binary", () => {
       configure,
       sourceUrl: "https://example.com/ffmpeg.tar.xz",
       sourceSha256: "a".repeat(64),
-      buildInstructionsUrl: "https://example.com/build"
+      buildInstructionsUrl: "https://example.com/build",
+      license: {
+        url: "https://example.com/COPYING.GPLv3",
+        sha256: "f".repeat(64)
+      },
+      binaryDistribution: {
+        provider: "Example builder",
+        providerUrl: "https://example.com",
+        builderRevision: "d".repeat(40),
+        archives: [{
+          url: "https://example.com/ffmpeg.zip",
+          sha256: "e".repeat(64)
+        }]
+      },
+      binaries: hashes
     }
-  }, observed, "aarch64-apple-darwin"));
+  }, observed, "aarch64-apple-darwin", hashes));
   assert.throws(() => validateMediaProvenance({ schemaVersion: 1 }, observed, "aarch64-apple-darwin"));
 });

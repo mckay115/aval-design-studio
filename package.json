@@ -37,6 +37,8 @@
     "release:config": "node scripts/write-release-config.mjs",
     "release:verify-assets": "node scripts/verify-release-assets.mjs",
     "toolchain:archive": "node scripts/package-media-toolchain.mjs",
+    "toolchain:fetch": "node scripts/fetch-media-toolchain.mjs",
+    "toolchain:sources": "node scripts/collect-media-source-offer.mjs",
     "toolchain:prepare": "node scripts/prepare-sidecars.mjs",
     "toolchain:verify": "node scripts/verify-toolchain.mjs",
     "sidecars:prepare": "pnpm toolchain:prepare"

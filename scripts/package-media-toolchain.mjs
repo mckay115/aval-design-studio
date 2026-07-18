@@ -39,10 +39,15 @@ const probeVersion = parseMediaVersion(
 );
 if (probeVersion !== observed.version) throw new Error("FFmpeg and FFprobe versions must match.");
 assertPortableMedia([ffmpeg, ffprobe], target);
+const binaryHashes = {
+  ffmpegSha256: await sha256File(ffmpeg),
+  ffprobeSha256: await sha256File(ffprobe)
+};
 validateMediaProvenance(
   JSON.parse(await readFile(sourceRecord, "utf8")),
   observed,
-  target
+  target,
+  binaryHashes
 );
 await mkdir(outputDirectory, { recursive: true });
 const archiveName = `aval-media-toolchain-${target}.tar.gz`;

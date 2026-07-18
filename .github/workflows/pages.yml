@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - "scripts/validate-pages-site.mjs"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -35,6 +36,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/write-site-downloads.mjs site/downloads.json
+
+      - name: Validate Pages site
+        run: node scripts/validate-pages-site.mjs
 
       - name: Upload static site
         uses: actions/upload-pages-artifact@v5

@@ -43,6 +43,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify updater private key and password
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [[ -z "${TAURI_SIGNING_PRIVATE_KEY}" ]]; then
+            echo "TAURI_SIGNING_PRIVATE_KEY must be configured before releasing." >&2
+            exit 1
+          fi
+          SIGNING_PROBE="${RUNNER_TEMP}/aval-updater-signing-probe"
+          : > "${SIGNING_PROBE}"
+          pnpm tauri signer sign "${SIGNING_PROBE}"
+
       - name: Verify source and synchronized release version
         id: release
         shell: bash

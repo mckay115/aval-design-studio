@@ -58,6 +58,17 @@ test("Apple credentials are exported only after explicit signing opt-in", () => 
   );
 });
 
+test("release validation signs a probe before platform builds", () => {
+  assert.match(
+    workflow,
+    /Verify updater private key and password[\s\S]*tauri signer sign "\$\{SIGNING_PROBE\}"/u
+  );
+  assert.ok(
+    workflow.indexOf("Verify updater private key and password") <
+      workflow.indexOf("Verify source and synchronized release version")
+  );
+});
+
 test("media toolchain is natively validated for every desktop target", () => {
   for (const target of [
     "aarch64-apple-darwin",

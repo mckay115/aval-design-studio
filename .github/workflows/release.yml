@@ -210,18 +210,56 @@ jobs:
           AVAL_TARGET_TRIPLE: ${{ matrix.target }}
         run: pnpm release:config
 
+      - name: Configure ad-hoc Apple signing
+        if: contains(matrix.target, 'apple-darwin') && vars.APPLE_SIGNING_ENABLED != 'true'
+        shell: bash
+        run: echo "APPLE_SIGNING_IDENTITY=-" >> "${GITHUB_ENV}"
+
+      - name: Configure Apple Developer signing
+        if: contains(matrix.target, 'apple-darwin') && vars.APPLE_SIGNING_ENABLED == 'true'
+        shell: bash
+        env:
+          CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          NOTARIZATION_ID: ${{ secrets.APPLE_ID }}
+          NOTARIZATION_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          for value in CERTIFICATE CERTIFICATE_PASSWORD SIGNING_IDENTITY NOTARIZATION_ID NOTARIZATION_PASSWORD TEAM_ID; do
+            if [[ -z "${!value}" ]]; then
+              echo "APPLE_SIGNING_ENABLED is true, but ${value} is not configured." >&2
+              exit 1
+            fi
+          done
+          DELIMITER="AVAL_APPLE_$(openssl rand -hex 16)"
+          {
+            echo "APPLE_CERTIFICATE<<${DELIMITER}"
+            printf '%s\n' "${CERTIFICATE}"
+            echo "${DELIMITER}"
+            echo "APPLE_CERTIFICATE_PASSWORD<<${DELIMITER}"
+            printf '%s\n' "${CERTIFICATE_PASSWORD}"
+            echo "${DELIMITER}"
+            echo "APPLE_SIGNING_IDENTITY<<${DELIMITER}"
+            printf '%s\n' "${SIGNING_IDENTITY}"
+            echo "${DELIMITER}"
+            echo "APPLE_ID<<${DELIMITER}"
+            printf '%s\n' "${NOTARIZATION_ID}"
+            echo "${DELIMITER}"
+            echo "APPLE_PASSWORD<<${DELIMITER}"
+            printf '%s\n' "${NOTARIZATION_PASSWORD}"
+            echo "${DELIMITER}"
+            echo "APPLE_TEAM_ID<<${DELIMITER}"
+            printf '%s\n' "${TEAM_ID}"
+            echo "${DELIMITER}"
+          } >> "${GITHUB_ENV}"
+
       - name: Build and attach release artifacts
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY || '-' }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
           releaseId: ${{ needs.create-release.outputs.release-id }}
           tagName: ${{ needs.validate.outputs.tag }}

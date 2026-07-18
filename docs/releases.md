@@ -29,7 +29,7 @@ Never commit the private key. Losing it prevents installed builds from trusting 
 
 ## 3. Platform signing
 
-Updater signatures protect update integrity but do not replace operating-system signing. Before broadly distributing releases, configure Apple Developer ID signing/notarization and a Windows code-signing certificate. Until Apple secrets are configured, the workflow uses Tauri's ad-hoc identity so both macOS architectures can still produce testable artifacts. Linux packages do not share one universal signing system; publish checksums and use the signed updater artifact for in-app updates.
+Updater signatures protect update integrity but do not replace operating-system signing. Before broadly distributing releases, configure Apple Developer ID signing/notarization and a Windows code-signing certificate. Apple signing is opt-in: configure the complete `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, and `APPLE_TEAM_ID` secret set, validate it in a release build, and only then set the `APPLE_SIGNING_ENABLED` Actions variable to `true`. Until that variable is enabled, the workflow ignores partial Apple credentials and uses Tauri's ad-hoc identity so both macOS architectures can still produce testable artifacts. Linux packages do not share one universal signing system; publish checksums and use the signed updater artifact for in-app updates.
 
 ## 4. Publish the required media toolchain
 

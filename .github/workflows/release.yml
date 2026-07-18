@@ -85,8 +85,7 @@ jobs:
         id: release
         shell: bash
         run: |
-          RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" 2>/dev/null || true)"
-          if [[ -n "${RELEASE_JSON}" ]]; then
+          if RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" 2>/dev/null)"; then
             if [[ "$(jq -r '.draft' <<< "${RELEASE_JSON}")" != "true" ]]; then
               echo "Release ${TAG} already exists and is published; refusing to replace it." >&2
               exit 1

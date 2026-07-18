@@ -10,6 +10,9 @@ const mediaWorkflow = await readFile(
   new URL("../.github/workflows/media-toolchain.yml", import.meta.url),
   "utf8"
 );
+const tauriConfig = JSON.parse(
+  await readFile(new URL("../src-tauri/tauri.conf.json", import.meta.url), "utf8")
+);
 
 test("release lookup includes drafts and avoids the published-only tag endpoint", () => {
   assert.match(
@@ -85,6 +88,12 @@ test("official releases support Apple Silicon macOS only", () => {
   assert.match(workflow, /macOS Apple Silicon/u);
   assert.doesNotMatch(workflow, /macOS Intel|x86_64-apple-darwin/u);
   assert.doesNotMatch(mediaWorkflow, /macOS Intel|x86_64-apple-darwin/u);
+});
+
+test("Windows installers have an explicit native icon", async () => {
+  assert.ok(tauriConfig.bundle.icon.includes("icons/icon.ico"));
+  const icon = await readFile(new URL("../src-tauri/icons/icon.ico", import.meta.url));
+  assert.ok(icon.length > 0);
 });
 
 test("media toolchain stays a prerelease and cannot replace latest desktop updates", () => {

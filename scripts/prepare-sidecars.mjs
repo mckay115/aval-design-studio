@@ -3,6 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
+import { downloadVerified } from "./media-source-lib.mjs";
 import {
   assertFile,
   assertPortableMedia,
@@ -125,8 +126,11 @@ for (const packageName of compilerPackages) {
 }
 
 const nodeLicense = resolve(
-  process.env.AVAL_NODE_LICENSE || join(dirname(process.execPath), "../LICENSE")
+  process.env.AVAL_NODE_LICENSE || join(root, ".toolchain/node/LICENSE")
 );
+if (!process.env.AVAL_NODE_LICENSE) {
+  await downloadVerified(versions.node.licenseUrl, versions.node.licenseSha256, nodeLicense);
+}
 await assertFile(nodeLicense, "Node.js license");
 await copyFile(nodeLicense, resolve(licenseDestination, "NODE-LICENSE.txt"));
 await copyFile(mediaLicenseSource, resolve(licenseDestination, "FFMPEG-LICENSE.txt"));

@@ -6,7 +6,9 @@
     "compilerVersion": "1.0.0"
   },
   "node": {
-    "version": "22.12.0"
+    "version": "22.12.0",
+    "licenseUrl": "https://raw.githubusercontent.com/nodejs/node/v22.12.0/LICENSE",
+    "licenseSha256": "9d72cce9b104ecb67feb8af38618511685190ae5a119cc0488ecae66b221000d"
   },
   "media": {
     "archiveRelease": "aval-media-toolchain-v1",

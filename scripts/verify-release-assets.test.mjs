@@ -11,7 +11,6 @@ function validFixture() {
   const files = [
     "latest.json",
     "AVAL.Design.Studio_0.2.0_aarch64.dmg",
-    "AVAL.Design.Studio_0.2.0_x64.dmg",
     "aval-design-studio_0.2.0_amd64.AppImage",
     "aval-design-studio_0.2.0_amd64.deb",
     "aval-design-studio-0.2.0-1.x86_64.rpm",
@@ -38,10 +37,10 @@ function validFixture() {
 test("accepts one complete cross-platform release", () => {
   const fixture = validFixture();
   assert.deepEqual(verifyReleaseAssets(fixture.files, fixture.latest, "0.2.0"), {
-    assets: 16,
-    installers: 7,
-    updaterPlatforms: 4,
-    targets: 4
+    assets: 13,
+    installers: 6,
+    updaterPlatforms: 3,
+    targets: 3
   });
 });
 

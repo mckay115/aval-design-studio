@@ -138,5 +138,6 @@ the intended regions. Code signing and notarization do not replace those duties.
 
 Bundling adds roughly the compressed size of FFmpeg, FFprobe, Node, and the AVAL
 compiler to every installer and update. In exchange, users get a consistent
-codec toolchain with no PATH setup or runtime download. The current macOS media
-build requires macOS 12.3 or newer, so the Tauri bundle declares the same floor.
+codec toolchain with no PATH setup or runtime download. The official Apple
+Silicon macOS media build requires macOS 12.3 or newer, so the Tauri bundle
+declares the same floor. Intel macOS is not an official release target.

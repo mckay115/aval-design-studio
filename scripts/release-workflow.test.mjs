@@ -72,7 +72,6 @@ test("release validation signs a probe before platform builds", () => {
 test("media toolchain is natively validated for every desktop target", () => {
   for (const target of [
     "aarch64-apple-darwin",
-    "x86_64-apple-darwin",
     "x86_64-unknown-linux-gnu",
     "x86_64-pc-windows-msvc"
   ]) {
@@ -80,6 +79,12 @@ test("media toolchain is natively validated for every desktop target", () => {
   }
   assert.match(mediaWorkflow, /fetch-media-toolchain\.mjs \$\{\{ matrix\.target \}\}/u);
   assert.match(mediaWorkflow, /package-media-toolchain\.mjs \$\{\{ matrix\.target \}\}/u);
+});
+
+test("official releases support Apple Silicon macOS only", () => {
+  assert.match(workflow, /macOS Apple Silicon/u);
+  assert.doesNotMatch(workflow, /macOS Intel|x86_64-apple-darwin/u);
+  assert.doesNotMatch(mediaWorkflow, /macOS Intel|x86_64-apple-darwin/u);
 });
 
 test("media toolchain stays a prerelease and cannot replace latest desktop updates", () => {

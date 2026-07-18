@@ -21,7 +21,6 @@ body:
       label: Operating system
       options:
         - macOS Apple Silicon
-        - macOS Intel
         - Windows x64
         - Linux x64
         - Browser development build

@@ -4,14 +4,12 @@ import { pathToFileURL } from "node:url";
 
 export const RELEASE_TARGETS = [
   "aarch64-apple-darwin",
-  "x86_64-apple-darwin",
   "x86_64-unknown-linux-gnu",
   "x86_64-pc-windows-msvc"
 ];
 
 export const UPDATER_PLATFORMS = [
   "darwin-aarch64",
-  "darwin-x86_64",
   "linux-x86_64",
   "windows-x86_64"
 ];
@@ -20,10 +18,6 @@ const INSTALLER_FAMILIES = [
   {
     label: "macOS Apple Silicon DMG",
     matches: (name) => /(?:aarch64|arm64).*\.dmg$/iu.test(name)
-  },
-  {
-    label: "macOS Intel DMG",
-    matches: (name) => /(?:x64|x86_64).*\.dmg$/iu.test(name)
   },
   {
     label: "Linux AppImage",
@@ -68,7 +62,7 @@ export function verifyReleaseAssets(fileNames, latest, expectedVersion) {
 
   assert(
     names.filter((name) => name.endsWith(".sig")).length >= UPDATER_PLATFORMS.length,
-    "Release must contain at least four updater signature assets."
+    `Release must contain at least ${UPDATER_PLATFORMS.length} updater signature assets.`
   );
   assert(latest !== null && typeof latest === "object", "latest.json must contain an object.");
   assert(latest.version === expectedVersion, `latest.json version must be ${expectedVersion}.`);

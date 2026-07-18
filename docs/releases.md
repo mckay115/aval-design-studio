@@ -29,7 +29,7 @@ Never commit the private key. Losing it prevents installed builds from trusting 
 
 ## 3. Platform signing
 
-Updater signatures protect update integrity but do not replace operating-system signing. Before broadly distributing releases, configure Apple Developer ID signing/notarization and a Windows code-signing certificate. Apple signing is opt-in: configure the complete `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, and `APPLE_TEAM_ID` secret set, validate it in a release build, and only then set the `APPLE_SIGNING_ENABLED` Actions variable to `true`. Until that variable is enabled, the workflow ignores partial Apple credentials and uses Tauri's ad-hoc identity so both macOS architectures can still produce testable artifacts. Linux packages do not share one universal signing system; publish checksums and use the signed updater artifact for in-app updates.
+Updater signatures protect update integrity but do not replace operating-system signing. Before broadly distributing releases, configure Apple Developer ID signing/notarization and a Windows code-signing certificate. Apple signing is opt-in: configure the complete `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`, `APPLE_ID`, `APPLE_PASSWORD`, and `APPLE_TEAM_ID` secret set, validate it in a release build, and only then set the `APPLE_SIGNING_ENABLED` Actions variable to `true`. Until that variable is enabled, the workflow ignores partial Apple credentials and uses Tauri's ad-hoc identity so the Apple Silicon macOS build can still produce a testable artifact. Linux packages do not share one universal signing system; publish checksums and use the signed updater artifact for in-app updates.
 
 ## 4. Publish the required media toolchain
 
@@ -48,9 +48,9 @@ Choose one release trigger:
 - Push the matching tag, for example `app-v0.1.0`; or
 - Run **Release desktop app** manually from the Actions tab.
 
-The workflow first signs a temporary probe with the configured updater private key and password, then validates the source and creates exactly one coordinated draft release pinned to that validated commit. A bad signing secret therefore fails before the platform matrix begins. The draft's numeric GitHub release ID is passed to the macOS Apple Silicon, macOS Intel, Linux x64, and Windows x64 jobs, so every installer and updater artifact is attached to the same release even when builds finish in a different order.
+The workflow first signs a temporary probe with the configured updater private key and password, then validates the source and creates exactly one coordinated draft release pinned to that validated commit. A bad signing secret therefore fails before the platform matrix begins. The draft's numeric GitHub release ID is passed to the macOS Apple Silicon, Linux x64, and Windows x64 jobs, so every installer and updater artifact is attached to the same release even when builds finish in a different order.
 
-After all four builds succeed, the final job downloads the complete draft and verifies the platform installer families, signed updater entries, and per-target toolchain provenance. It then attaches `SHA256SUMS` and publishes the release as latest. A missing target leaves the release in draft, so installed builds never receive a partial `latest.json`.
+After all three builds succeed, the final job downloads the complete draft and verifies the platform installer families, signed updater entries, and per-target toolchain provenance. It then attaches `SHA256SUMS` and publishes the release as latest. A missing target leaves the release in draft, so installed builds never receive a partial `latest.json`.
 
 Do not manually publish a partial draft created by a failed workflow. Fix the failed target and rerun the workflow so `latest.json` remains complete for every supported platform.
 
@@ -58,7 +58,7 @@ The installers are intentionally self-contained. This makes downloads and future
 
 ## 6. Verify a published release
 
-1. Confirm the single release contains macOS Apple Silicon and Intel DMGs, Windows NSIS and MSI installers, Linux AppImage, DEB, and RPM packages, updater signatures, `latest.json`, four toolchain manifests, and `SHA256SUMS`.
+1. Confirm the single release contains a macOS Apple Silicon DMG, Windows NSIS and MSI installers, Linux AppImage, DEB, and RPM packages, updater signatures, `latest.json`, three toolchain manifests, and `SHA256SUMS`.
 2. Install the previous release on each supported OS, publish the new version, and verify check → download → signature verification → install → relaunch.
 3. Confirm the Pages download buttons resolve to the new GitHub release.
 4. Preserve the updater private key and its password in an offline backup. They are required for every future update trusted by existing installations.

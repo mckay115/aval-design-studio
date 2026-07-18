@@ -74,6 +74,8 @@ SOURCE.json
 Preparation executes the binaries and rejects mismatched FFmpeg/FFprobe
 versions, missing `libaom-av1`, `libvpx-vp9`, `libx265`, or `libx264`, missing
 GPL enablement, `--enable-nonfree`, incomplete provenance, and target mismatch.
+macOS sidecars may link only Apple system frameworks/libraries; Linux sidecars
+may link only the explicit glibc system ABI and must embed all codec libraries.
 The observed configure line and executable hashes—not package labels—are written
 to `toolchain-manifest.json` and included in the app.
 

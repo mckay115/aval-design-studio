@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   hostTargetTriple,
   parseMediaVersion,
+  unsupportedLinuxDependencies,
   validateFfmpeg,
   validateMediaProvenance
 } from "./toolchain-lib.mjs";
@@ -16,6 +17,24 @@ test("maps supported native hosts to Tauri target triples", () => {
   assert.equal(hostTargetTriple("darwin", "arm64"), "aarch64-apple-darwin");
   assert.equal(hostTargetTriple("win32", "x64"), "x86_64-pc-windows-msvc");
   assert.throws(() => hostTargetTriple("linux", "arm64"), /Unsupported/u);
+});
+
+test("allows the Linux system ABI while rejecting external shared libraries", () => {
+  const systemOnly = `
+    linux-vdso.so.1 (0x00007fff)
+    libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fff)
+    libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fff)
+    /lib64/ld-linux-x86-64.so.2 (0x00007fff)
+  `;
+  assert.deepEqual(unsupportedLinuxDependencies(systemOnly), []);
+  assert.deepEqual(
+    unsupportedLinuxDependencies(`${systemOnly}\nlibcrypto.so.3 => /usr/lib/libcrypto.so.3 (0x0)`),
+    ["libcrypto.so.3"]
+  );
+  assert.deepEqual(
+    unsupportedLinuxDependencies(`${systemOnly}\nlibx265.so.199 => not found`),
+    ["libx265.so.199 (not found)"]
+  );
 });
 
 test("accepts a GPL FFmpeg with every AVAL encoder", () => {

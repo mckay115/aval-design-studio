@@ -101,11 +101,44 @@ export function assertPortableMedia(executables, target) {
     for (const executable of executables) {
       const result = spawnSync("ldd", [executable], { encoding: "utf8", windowsHide: true });
       const output = `${result.stdout || ""}${result.stderr || ""}`;
-      if (!/not a dynamic executable|statically linked/iu.test(output)) {
-        throw new Error(`${executable} must be a static Linux media sidecar; ldd reported:\n${output.trim()}`);
+      const unsupported = unsupportedLinuxDependencies(output);
+      if (unsupported.length > 0) {
+        throw new Error(
+          `${executable} has unbundled Linux dependencies: ${unsupported.join(", ")}.\n` +
+            `ldd reported:\n${output.trim()}`
+        );
       }
     }
   }
+}
+
+const LINUX_SYSTEM_ABI = new Set([
+  "ld-linux-x86-64.so.2",
+  "libc.so.6",
+  "libdl.so.2",
+  "libgcc_s.so.1",
+  "libm.so.6",
+  "libmvec.so.1",
+  "libpthread.so.0",
+  "librt.so.1",
+  "linux-vdso.so.1"
+]);
+
+export function unsupportedLinuxDependencies(output) {
+  if (/not a dynamic executable|statically linked/iu.test(output)) return [];
+  const unsupported = [];
+  for (const line of output.split(/\r?\n/u)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const first = trimmed.split(/\s+/u)[0];
+    const name = first.split(/[\\/]/u).at(-1);
+    if (trimmed.includes("=> not found")) {
+      unsupported.push(`${name} (not found)`);
+    } else if (!LINUX_SYSTEM_ABI.has(name)) {
+      unsupported.push(name);
+    }
+  }
+  return unsupported;
 }
 
 export async function sha256File(path) {

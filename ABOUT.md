@@ -600,9 +600,10 @@ src-tauri/toolchain-runtime/
 Supported target names in the current release matrix are:
 
 - `aarch64-apple-darwin`;
-- `x86_64-apple-darwin`;
 - `x86_64-unknown-linux-gnu`;
 - `x86_64-pc-windows-msvc`.
+
+Official macOS releases support Apple Silicon only.
 
 The release job always downloads the media archive from the immutable prerelease pinned in `toolchain/versions.json`:
 
@@ -646,7 +647,7 @@ Every distributed media toolchain must record:
 
 - Uses WKWebView through Tauri/Wry.
 - Minimum configured system version is macOS 11.0.
-- Release matrix includes Apple Silicon and Intel targets.
+- Official releases target Apple Silicon.
 - Public distribution should use Developer ID signing and notarization.
 
 ### Windows
@@ -832,7 +833,6 @@ CI has read-only repository contents permission. Concurrent runs on the same Git
 The matrix builds:
 
 - macOS Apple Silicon;
-- macOS Intel;
 - Linux x64;
 - Windows x64.
 

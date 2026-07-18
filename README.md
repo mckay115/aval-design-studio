@@ -18,11 +18,11 @@ The editor uses [MediaBunny](https://mediabunny.dev/) for container inspection, 
 
 ## Install the desktop app
 
-Download the latest installer for macOS, Windows, or Linux from [GitHub Releases](https://github.com/mckay115/aval-design-studio/releases/latest). Release builds include the pinned AVAL compiler, Node runtime, FFmpeg, and FFprobe. Tauri verifies signed update artifacts from the same GitHub Releases feed and offers later versions inside the app.
+Download the latest installer for Apple Silicon macOS, Windows x64, or Linux x64 from [GitHub Releases](https://github.com/mckay115/aval-design-studio/releases/latest). Release builds include the pinned AVAL compiler, Node runtime, FFmpeg, and FFprobe. Tauri verifies signed update artifacts from the same GitHub Releases feed and offers later versions inside the app.
 
 The bundles favor a no-setup authoring experience over small downloads: media
 executables and the private compiler runtime are included in every installer and
-full-package update. macOS builds require macOS 12.3 or newer. See
+full-package update. The Apple Silicon macOS build requires macOS 12.3 or newer; Intel Macs are not an officially supported release target. See
 [release setup](docs/releases.md) for platform code-signing expectations.
 
 ## Workflow

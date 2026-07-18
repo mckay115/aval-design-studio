@@ -46,6 +46,14 @@ test("finalization resolves the draft by numeric release ID", () => {
   assert.match(workflow, /releases\/\$\{RELEASE_ID\}[\s\S]*make_latest=true/u);
 });
 
+test("finalization runs the asset verifier without an uninstalled package manager", () => {
+  assert.match(
+    workflow,
+    /node scripts\/verify-release-assets\.mjs release-assets "\$\{VERSION\}"/u
+  );
+  assert.doesNotMatch(workflow, /pnpm release:verify-assets/u);
+});
+
 test("Apple credentials are exported only after explicit signing opt-in", () => {
   assert.match(
     workflow,

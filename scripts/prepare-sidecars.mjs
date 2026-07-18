@@ -84,7 +84,11 @@ if (ffprobeVersion !== observedMedia.version) {
 }
 assertPortableMedia([ffmpegSource, ffprobeSource], target);
 const provenance = JSON.parse(await readFile(provenanceSource, "utf8"));
-validateMediaProvenance(provenance, observedMedia, target);
+const sourceBinaryHashes = {
+  ffmpegSha256: await sha256File(ffmpegSource),
+  ffprobeSha256: await sha256File(ffprobeSource)
+};
+validateMediaProvenance(provenance, observedMedia, target, sourceBinaryHashes);
 
 const destinationDirectory = resolve(root, "src-tauri/binaries");
 const runtimeDirectory = resolve(root, "src-tauri/toolchain-runtime");
@@ -149,7 +153,9 @@ const manifest = {
     sha256: await sha256File(binaries[1][1]),
     sourceUrl: provenance.ffmpeg.sourceUrl,
     sourceSha256: provenance.ffmpeg.sourceSha256,
-    buildInstructionsUrl: provenance.ffmpeg.buildInstructionsUrl
+    buildInstructionsUrl: provenance.ffmpeg.buildInstructionsUrl,
+    license: provenance.ffmpeg.license,
+    binaryDistribution: provenance.ffmpeg.binaryDistribution
   },
   ffprobe: {
     version: ffprobeVersion,

@@ -18,6 +18,14 @@ The Studio imports these packages without modifying their source. If a release b
 - **FFmpeg / FFprobe** — copyright the FFmpeg project contributors. Studio
   requires GPL-enabled builds because the compiler invokes x264 and x265.
 
+The reviewed macOS binaries are provided by
+[Martin Riedl's FFmpeg Build Server](https://ffmpeg.martin-riedl.de/). The
+reviewed Windows and Linux binaries are provided by
+[BtbN FFmpeg Builds](https://github.com/BtbN/FFmpeg-Builds). Their exact binary
+archives, builder revisions, corresponding FFmpeg sources, and checksums are
+recorded in `toolchain/media-sources.json` and mirrored on the media-toolchain
+prerelease.
+
 Each installer contains `toolchain-runtime/toolchain-manifest.json`, the Node
 license, the media build's exact license, configure flags, hashes, and source
 record. Release preparation rejects `--enable-nonfree`. Distributors remain

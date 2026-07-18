@@ -33,7 +33,9 @@ Updater signatures protect update integrity but do not replace operating-system 
 
 ## 4. Publish the required media toolchain
 
-Publish reviewed archives named `aval-media-toolchain-<rust-target>.tar.gz` plus matching `.sha256` records in the immutable prerelease named by `toolchain/versions.json`. Keeping it a prerelease prevents a toolchain-only release from replacing the desktop app at GitHub's `/releases/latest` updater endpoint. Each archive contains FFmpeg, FFprobe, `LICENSE`, and `SOURCE.json`; the pinned AVAL compiler and private Node runtime are built directly in release CI.
+Run **Publish reviewed media toolchain** from the Actions tab on `main`. The workflow downloads only the immutable archives and hashes in `toolchain/media-sources.json`, executes each build on its native OS, rejects missing codecs or nonfree configuration, and publishes `aval-media-toolchain-<rust-target>.tar.gz` plus matching `.sha256` records. It also attaches corresponding FFmpeg source and pinned open-source build recipes.
+
+The release is an immutable prerelease named by `toolchain/versions.json`, so it cannot replace the desktop app at GitHub's `/releases/latest` updater endpoint. Each archive contains FFmpeg, FFprobe, `LICENSE`, and `SOURCE.json`; the pinned AVAL compiler and private Node runtime are built directly in desktop release CI.
 
 The release workflow always downloads and verifies the matching archive, builds the pinned official compiler, prepares Tauri's target-suffixed binaries/resources, and runs the toolchain smoke test. Missing or invalid media artifacts fail the release—there is no editor-only production fallback. See [toolchain.md](toolchain.md) for the archive contract and distribution gate.
 
@@ -51,6 +53,8 @@ The workflow validates the source and creates exactly one coordinated draft rele
 After all four builds succeed, the final job downloads the complete draft and verifies the platform installer families, signed updater entries, and per-target toolchain provenance. It then attaches `SHA256SUMS` and publishes the release as latest. A missing target leaves the release in draft, so installed builds never receive a partial `latest.json`.
 
 Do not manually publish a partial draft created by a failed workflow. Fix the failed target and rerun the workflow so `latest.json` remains complete for every supported platform.
+
+The installers are intentionally self-contained. This makes downloads and future full-package updates substantially larger, but removes Node/FFmpeg setup from the user workflow. Updater signing authenticates Tauri update artifacts. Public distribution still needs Apple Developer ID notarization and Windows Authenticode secrets to avoid operating-system trust warnings; an updater signature alone does not provide either platform trust signal.
 
 ## 6. Verify a published release
 

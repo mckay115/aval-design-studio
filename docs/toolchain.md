@@ -32,6 +32,13 @@ compiler version.
 
 ## Reviewed media archives
 
+`.github/workflows/media-toolchain.yml` creates the reviewed prerelease named in
+`toolchain/versions.json`. `toolchain/media-sources.json` pins every upstream
+binary archive, corresponding FFmpeg source archive, open-source builder
+revision, and SHA-256 checksum. Each matrix job downloads its target on the
+native operating system, executes FFmpeg and FFprobe, applies the encoder,
+license, and portability gates below, and only then creates the Studio archive.
+
 The release named in `toolchain/versions.json` must contain one pair per target:
 
 ```text
@@ -70,20 +77,26 @@ GPL enablement, `--enable-nonfree`, incomplete provenance, and target mismatch.
 The observed configure line and executable hashes—not package labels—are written
 to `toolchain-manifest.json` and included in the app.
 
-The media archive release should be immutable and remain a prerelease so it does
+The media archive release is immutable and remains a prerelease so it does
 not become the desktop updater's `/releases/latest` response. Exact corresponding
-source archives and build instructions must remain available for as long as the
-binary is distributed.
+source archives, the pinned build-script snapshots, hashes, and a source-offer
+record are attached beside the binary archives and must remain available for as
+long as the binary is distributed.
 
-After placing a native reviewed build and its records in
-`.toolchain/media/<target>`, create the exact release assets with:
+To reproduce a target job locally, fetch and validate the pinned input, then
+create the exact release assets with:
 
 ```sh
+pnpm toolchain:fetch -- <target>
 pnpm toolchain:archive -- <target>
 ```
 
 This repeats the encoder, redistribution, portability, and provenance checks
 before writing the tarball and checksum record.
+
+Run **Publish reviewed media toolchain** from the Actions tab on `main` once per
+toolchain version. All four native jobs and the source-offer job must succeed
+before the prerelease is published.
 
 ## Local/release preparation
 
@@ -116,3 +129,8 @@ FFmpeg builds with `--enable-nonfree` are never accepted. Builds containing
 x264/x265 are GPL builds, so a distributor must satisfy the applicable GPL
 source, notice, and installation obligations as well as codec/patent review for
 the intended regions. Code signing and notarization do not replace those duties.
+
+Bundling adds roughly the compressed size of FFmpeg, FFprobe, Node, and the AVAL
+compiler to every installer and update. In exchange, users get a consistent
+codec toolchain with no PATH setup or runtime download. The current macOS media
+build requires macOS 12.3 or newer, so the Tauri bundle declares the same floor.

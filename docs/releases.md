@@ -48,7 +48,7 @@ Choose one release trigger:
 - Push the matching tag, for example `app-v0.1.0`; or
 - Run **Release desktop app** manually from the Actions tab.
 
-The workflow validates the source and creates exactly one coordinated draft release pinned to that validated commit. Its numeric GitHub release ID is passed to the macOS Apple Silicon, macOS Intel, Linux x64, and Windows x64 jobs, so every installer and updater artifact is attached to the same release even when builds finish in a different order.
+The workflow first signs a temporary probe with the configured updater private key and password, then validates the source and creates exactly one coordinated draft release pinned to that validated commit. A bad signing secret therefore fails before the platform matrix begins. The draft's numeric GitHub release ID is passed to the macOS Apple Silicon, macOS Intel, Linux x64, and Windows x64 jobs, so every installer and updater artifact is attached to the same release even when builds finish in a different order.
 
 After all four builds succeed, the final job downloads the complete draft and verifies the platform installer families, signed updater entries, and per-target toolchain provenance. It then attaches `SHA256SUMS` and publishes the release as latest. A missing target leaves the release in draft, so installed builds never receive a partial `latest.json`.
 

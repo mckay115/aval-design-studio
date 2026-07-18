@@ -43,6 +43,21 @@ test("finalization resolves the draft by numeric release ID", () => {
   assert.match(workflow, /releases\/\$\{RELEASE_ID\}[\s\S]*make_latest=true/u);
 });
 
+test("Apple credentials are exported only after explicit signing opt-in", () => {
+  assert.match(
+    workflow,
+    /Configure ad-hoc Apple signing[\s\S]*APPLE_SIGNING_IDENTITY=-/u
+  );
+  assert.match(
+    workflow,
+    /Configure Apple Developer signing[\s\S]*APPLE_SIGNING_ENABLED == 'true'/u
+  );
+  assert.doesNotMatch(
+    workflow,
+    /Build and attach release artifacts[\s\S]*APPLE_CERTIFICATE:/u
+  );
+});
+
 test("media toolchain is natively validated for every desktop target", () => {
   for (const target of [
     "aarch64-apple-darwin",

@@ -24,4 +24,11 @@ if (versionsConfig.media.archiveRelease !== mediaSources.release) {
   );
 }
 
+if (
+  !/^https:\/\//u.test(versionsConfig.node.licenseUrl ?? "") ||
+  !/^[a-f0-9]{64}$/u.test(versionsConfig.node.licenseSha256 ?? "")
+) {
+  throw new Error("Node license URL and SHA-256 must be pinned in toolchain/versions.json.");
+}
+
 console.log(`Version ${versions[0]} and media release ${mediaSources.release} are synchronized.`);

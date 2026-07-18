@@ -30,6 +30,10 @@ package build, and copies only the built package runtime, package metadata, and
 licenses. `scripts/prepare-sidecars.mjs` rejects a different Git commit or
 compiler version.
 
+The official Node 22.12.0 license URL and hash are pinned beside the runtime
+version. Release preparation downloads that verified text explicitly because
+GitHub's Windows Node toolcache does not place a license beside `node.exe`.
+
 ## Reviewed media archives
 
 `.github/workflows/media-toolchain.yml` creates the reviewed prerelease named in
